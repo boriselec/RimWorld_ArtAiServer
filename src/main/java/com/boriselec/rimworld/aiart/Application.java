@@ -17,6 +17,6 @@ public class Application {
 
     @Bean
     public LinkedBlockingQueue<Request> linkedBlockingQueue() {
-        return new LinkedBlockingQueue<>();
+        return new LinkedBlockingQueue<>(240);
     }
 }

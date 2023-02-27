@@ -33,11 +33,10 @@ public class JobQueue {
     }
 
     private int putInQueue(Request request) {
-        try {
-            queue.put(request);
+        if (queue.offer(request)) {
             return queue.size() - 1;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new IllegalStateException("Queue is full");
         }
     }
 }
