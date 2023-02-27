@@ -28,10 +28,11 @@ public class JobProcessor {
     @Scheduled(fixedDelay = 100)
     public void process() throws IOException {
         if (!queue.isEmpty()) {
-            Request request = queue.poll();
+            Request request = queue.peek();
             String description = ArtDescriptionTextProcessor.getDescription(request);
             InputStream image = generatorClient.getImage(description);
             imageRepository.saveImage(image, request);
+            queue.remove();
         }
     }
 }
