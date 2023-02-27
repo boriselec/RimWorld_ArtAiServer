@@ -2,7 +2,7 @@
 FROM eclipse-temurin:17-jdk-alpine as build
 COPY . /home
 RUN cd /home && \
-    ./mvnw jar:jar
+    ./mvnw clean package
 
 # production environment
 FROM eclipse-temurin:17-jre-alpine
