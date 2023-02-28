@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  server:
+    image: ghcr.io/boriselec/rimworld_artaiserver:main
+    container_name: server
+    ports: 
+      - "8080:8080"
+    volumes:
+      - "./images:/mnt/images"
+  generator:
+    image: ghcr.io/boriselec/rimworld_artaistablediffusion:main
+    container_name: generator
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
