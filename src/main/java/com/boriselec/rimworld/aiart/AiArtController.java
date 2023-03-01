@@ -24,6 +24,7 @@ public class AiArtController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generate(@RequestBody String postData) {
+        System.out.println("Received: " + postData);
         Request rq = Request.deserialize(postData);
         return imageRepository.getImage(rq)
                 .map(this::getImageResponse)
