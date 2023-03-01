@@ -8,6 +8,8 @@ services:
       - "8080:8080"
     volumes:
       - "./images:/mnt/images"
+    environment:
+      - GENERATOR_URL=http://generator:8081/generate
   generator:
     image: ghcr.io/boriselec/rimworld_artaistablediffusion:main
     container_name: generator
