@@ -25,7 +25,7 @@ public class JobProcessor {
         this.generatorClient = generatorClient;
     }
 
-    @Scheduled(fixedDelay = 100)
+    @Scheduled(fixedDelay = 1000)
     public void process() throws IOException {
         if (!queue.isEmpty()) {
             Request request = queue.peek();
