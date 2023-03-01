@@ -1,9 +1,7 @@
 package com.boriselec.rimworld.aiart.generator;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,11 +13,14 @@ import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpResponse.ResponseInfo;
 
-@Component
-public class StaticGenerator implements GeneratorClient {
-    @Value( "${generator.url}" )
-    private String url;
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+public class StaticGeneratorClient implements GeneratorClient {
+    private final String url;
+    private final HttpClient httpClient;
+
+    public StaticGeneratorClient(String url) {
+        this.url = url;
+        this.httpClient = HttpClient.newHttpClient();
+    }
 
     @Override
     public InputStream getImage(String description) {
