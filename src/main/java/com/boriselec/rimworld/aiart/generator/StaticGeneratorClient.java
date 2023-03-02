@@ -23,22 +23,18 @@ public class StaticGeneratorClient implements GeneratorClient {
     }
 
     @Override
-    public InputStream getImage(String description) {
-        try {
-            System.out.println("Getting image...");
+    public InputStream getImage(String description) throws IOException, InterruptedException, URISyntaxException {
+        System.out.println("Getting image...");
 
-            HttpRequest request = HttpRequest.newBuilder(new URI(url))
-                    .POST(HttpRequest.BodyPublishers.ofString(description))
-                    .build();
-            InputStream response = httpClient
-                    .send(request, this::processResponse)
-                    .body();
+        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                .POST(HttpRequest.BodyPublishers.ofString(description))
+                .build();
+        InputStream response = httpClient
+                .send(request, this::processResponse)
+                .body();
 
-            System.out.println("Getting image: DONE");
-            return response;
-        } catch (URISyntaxException | IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("Getting image: DONE");
+        return response;
     }
 
     private BodySubscriber<InputStream> processResponse(ResponseInfo responseInfo) {

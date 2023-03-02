@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,12 +38,16 @@ public class GcpGeneratorClient implements GeneratorClient {
     }
 
     @Override
-    public InputStream getImage(String description) {
+    public InputStream getImage(String description) throws IOException, URISyntaxException, InterruptedException {
         lastRequest.set(LocalDateTime.now());
-        return getClient().getImage(description);
+        try {
+            return getClient().getImage(description);
+        } catch (ConnectException e) {
+            throw new GeneratorNotReadyException("GCP generator is running but not available yet");
+        }
     }
 
-    private GeneratorClient getClient() {
+    private GeneratorClient getClient() throws GeneratorNotReadyException {
         Instance currentInstance = instancesClient.get(project, zone, instance);
         switch (currentInstance.getStatus()) {
             case "RUNNING":
@@ -51,7 +57,7 @@ public class GcpGeneratorClient implements GeneratorClient {
             case "TERMINATED":
                 instancesClient.startAsync(project, zone, instance);
             default:
-                throw new IllegalStateException("GCP generator state: " + currentInstance.getStatus());
+                throw new GeneratorNotReadyException("GCP generator state: " + currentInstance.getStatus());
         }
     }
 
