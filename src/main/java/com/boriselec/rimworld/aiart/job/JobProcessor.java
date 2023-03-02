@@ -31,7 +31,7 @@ public class JobProcessor {
             Request request = queue.peek();
             String description = ArtDescriptionTextProcessor.getDescription(request);
             InputStream image = generatorClient.getImage(description);
-            imageRepository.saveImage(image, request);
+            imageRepository.saveImage(image, request.getArtDescription());
             queue.remove();
         }
     }

@@ -26,7 +26,7 @@ public class AiArtController {
     public ResponseEntity<?> generate(@RequestBody String postData) {
         System.out.println("Received: " + postData);
         Request rq = Request.deserialize(postData);
-        return imageRepository.getImage(rq)
+        return imageRepository.getImage(rq.getArtDescription())
                 .map(this::getImageResponse)
                 .orElseGet(() -> {
                     int position = jobQueue.putIfNotPresent(rq);
