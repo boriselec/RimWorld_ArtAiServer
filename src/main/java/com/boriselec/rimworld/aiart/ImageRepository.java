@@ -1,6 +1,6 @@
 package com.boriselec.rimworld.aiart;
 
-import com.boriselec.rimworld.aiart.data.Request;
+import com.boriselec.rimworld.aiart.data.ArtDescription;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -17,22 +17,22 @@ import java.util.Optional;
 public class ImageRepository {
     private static final String IMAGE_FOLDER = "/mnt/images/";
 
-    public Optional<InputStream> getImage(Request rq) {
+    public Optional<InputStream> getImage(ArtDescription desc) {
         try {
             return Optional.of(
                     new DataInputStream(
-                            new FileInputStream(getFilePath(rq))));
+                            new FileInputStream(getFilePath(desc))));
         } catch (FileNotFoundException e) {
             return Optional.empty();
         }
     }
 
-    public void saveImage(InputStream is, Request rq) throws IOException {
+    public void saveImage(InputStream is, ArtDescription desc) throws IOException {
         BufferedImage images = ImageIO.read(is);
-        ImageIO.write(images, "png", new File(getFilePath(rq)));
+        ImageIO.write(images, "png", new File(getFilePath(desc)));
     }
 
-    private String getFilePath(Request rq) {
-        return IMAGE_FOLDER + rq.hashCode() + ".png";
+    private String getFilePath(ArtDescription desc) {
+        return IMAGE_FOLDER + desc.hashCode() + ".png";
     }
 }

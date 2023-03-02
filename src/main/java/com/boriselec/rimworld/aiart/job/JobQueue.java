@@ -25,7 +25,8 @@ public class JobQueue {
     private Optional<Integer> getExistingPosition(Request request) {
         Object[] array = queue.toArray();
         for (int i = 0; i < array.length; i++) {
-            if (array[i].equals(request)) {
+            Request queued = (Request) array[i];
+            if (queued.getArtDescription().equals(request.getArtDescription())) {
                 return Optional.of(i);
             }
         }
@@ -33,10 +34,20 @@ public class JobQueue {
     }
 
     private int putInQueue(Request request) {
+        if (isUserLimitExceeded(request.userId())) {
+            throw new IllegalStateException("Limit exceeded");
+        }
         if (queue.offer(request)) {
             return queue.size() - 1;
         } else {
             throw new IllegalStateException("Queue is full");
         }
+    }
+
+    private boolean isUserLimitExceeded(String userId) {
+        return queue.stream()
+                .map(Request::userId)
+                .filter(userId::equals)
+                .count() > 10;
     }
 }
