@@ -7,6 +7,8 @@ import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.InstancesSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.FileInputStream;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GcpGeneratorClient implements GeneratorClient {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final InstancesClient instancesClient;
     private final String project;
     private final String zone;
@@ -67,7 +70,7 @@ public class GcpGeneratorClient implements GeneratorClient {
         if (isIdle) {
             Instance currentInstance = instancesClient.get(project, zone, instance);
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
-                System.out.println("Stopping instance");
+                log.info("Stopping instance");
                 instancesClient.stopAsync(project, zone, instance);
             }
         }

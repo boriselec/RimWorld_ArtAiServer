@@ -1,5 +1,7 @@
 package com.boriselec.rimworld.aiart.generator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -14,6 +16,7 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpResponse.ResponseInfo;
 
 public class StaticGeneratorClient implements GeneratorClient {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String url;
     private final HttpClient httpClient;
 
@@ -24,7 +27,7 @@ public class StaticGeneratorClient implements GeneratorClient {
 
     @Override
     public InputStream getImage(String description) throws IOException, InterruptedException, URISyntaxException {
-        System.out.println("Getting image...");
+        log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
                 .POST(HttpRequest.BodyPublishers.ofString(description))
@@ -33,7 +36,7 @@ public class StaticGeneratorClient implements GeneratorClient {
                 .send(request, this::processResponse)
                 .body();
 
-        System.out.println("Getting image: DONE");
+        log.info("Getting image: DONE");
         return response;
     }
 
