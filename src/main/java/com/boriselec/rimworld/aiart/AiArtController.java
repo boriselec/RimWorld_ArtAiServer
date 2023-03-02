@@ -2,6 +2,7 @@ package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.job.JobQueue;
+import com.boriselec.rimworld.aiart.job.QueueLimitException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +29,18 @@ public class AiArtController {
         Request rq = Request.deserialize(postData);
         return imageRepository.getImage(rq.getArtDescription())
                 .map(this::getImageResponse)
-                .orElseGet(() -> {
-                    int position = jobQueue.putIfNotPresent(rq);
-                    return getQueuedResponse(position);
-                });
+                .orElseGet(() -> process(rq));
+    }
+
+    private ResponseEntity<InputStreamResource> process(Request rq) {
+        String response;
+        try {
+            int position = jobQueue.putIfNotPresent(rq);
+            response = "Queued: " + position;
+        } catch (QueueLimitException e) {
+            response = e.getMessage() + ". Try later.";
+        }
+        return getInProgressResponse(response);
     }
 
     private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
@@ -40,8 +49,7 @@ public class AiArtController {
                 .body(new InputStreamResource(is));
     }
 
-    private ResponseEntity<InputStreamResource> getQueuedResponse(int queuePosition) {
-        String response = "Queued: " + queuePosition;
+    private ResponseEntity<InputStreamResource> getInProgressResponse(String response) {
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(new InputStreamResource(new ByteArrayInputStream(response.getBytes())));
