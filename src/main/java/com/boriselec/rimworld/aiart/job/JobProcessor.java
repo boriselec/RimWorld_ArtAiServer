@@ -37,6 +37,7 @@ public class JobProcessor {
                 InputStream image = generatorClient.getImage(description);
                 imageRepository.saveImage(image, request.getArtDescription());
                 queue.remove();
+                log.info("Queue size: " + queue.size());
             } catch (GeneratorNotReadyException e) {
                 log.warn(e.getMessage());
             }
