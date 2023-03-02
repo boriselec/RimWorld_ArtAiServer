@@ -35,12 +35,12 @@ public class JobQueue {
 
     private int putInQueue(Request request) {
         if (isUserLimitExceeded(request.userId())) {
-            throw new IllegalStateException("Limit exceeded");
+            throw new QueueLimitException("Limit exceeded");
         }
         if (queue.offer(request)) {
             return queue.size() - 1;
         } else {
-            throw new IllegalStateException("Queue is full");
+            throw new QueueLimitException("Queue is full");
         }
     }
 
