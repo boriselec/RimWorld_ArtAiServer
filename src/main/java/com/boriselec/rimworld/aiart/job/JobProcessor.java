@@ -5,6 +5,8 @@ import com.boriselec.rimworld.aiart.ImageRepository;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorNotReadyException;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 public class JobProcessor {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final LinkedBlockingQueue<Request> queue;
     private final ImageRepository imageRepository;
     private final GeneratorClient generatorClient;
@@ -35,7 +38,7 @@ public class JobProcessor {
                 imageRepository.saveImage(image, request.getArtDescription());
                 queue.remove();
             } catch (GeneratorNotReadyException e) {
-                System.out.println(e.getMessage());
+                log.warn(e.getMessage());
             }
         }
     }

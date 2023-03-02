@@ -3,6 +3,8 @@ package com.boriselec.rimworld.aiart;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.io.InputStream;
 
 @RestController
 public class AiArtController {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
 
@@ -25,7 +28,7 @@ public class AiArtController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generate(@RequestBody String postData) {
-        System.out.println("Received: " + postData);
+        log.info("Received: " + postData);
         Request rq = Request.deserialize(postData);
         return imageRepository.getImage(rq.getArtDescription())
                 .map(this::getImageResponse)
