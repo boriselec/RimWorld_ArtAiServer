@@ -1,17 +1,12 @@
 package com.boriselec.rimworld.aiart.generator;
 
-import com.google.api.gax.core.CredentialsProvider;
-import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.compute.v1.Instance;
-import com.google.cloud.compute.v1.InstancesClient;
-import com.google.cloud.compute.v1.InstancesSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
@@ -19,25 +14,16 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Component
+@ConditionalOnProperty("gcp.project")
 public class GcpGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final InstancesClient instancesClient;
-    private final String project;
-    private final String zone;
-    private final String instance;
+    private final GcpClient gcpClient;
 
     private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
 
-    public GcpGeneratorClient(String keyPath, String project, String zone, String instance) throws IOException {
-        Credentials credentials = ServiceAccountCredentials.fromStream(new FileInputStream(keyPath));
-        CredentialsProvider provider = FixedCredentialsProvider.create(credentials);
-        InstancesSettings settings = InstancesSettings.newBuilder()
-                .setCredentialsProvider(provider)
-                .build();
-        this.instancesClient = InstancesClient.create(settings);
-        this.project = project;
-        this.zone = zone;
-        this.instance = instance;
+    public GcpGeneratorClient(GcpClient gcpClient) {
+        this.gcpClient = gcpClient;
     }
 
     @Override
@@ -51,14 +37,14 @@ public class GcpGeneratorClient implements GeneratorClient {
     }
 
     private GeneratorClient getClient() throws GeneratorNotReadyException {
-        Instance currentInstance = instancesClient.get(project, zone, instance);
+        Instance currentInstance = gcpClient.get();
         switch (currentInstance.getStatus()) {
             case "RUNNING":
                 String ip = currentInstance.getNetworkInterfaces(0).getAccessConfigs(0).getNatIP();
                 String url = String.format("http://%s:8081/generate", ip);
                 return new StaticGeneratorClient(url);
             case "TERMINATED":
-                instancesClient.startAsync(project, zone, instance);
+                gcpClient.start();
             default:
                 throw new GeneratorNotReadyException("GCP generator state: " + currentInstance.getStatus());
         }
@@ -68,10 +54,10 @@ public class GcpGeneratorClient implements GeneratorClient {
     public void stopIfIdle() {
         boolean isIdle = LocalDateTime.now().minusMinutes(3).isAfter(lastRequest.get());
         if (isIdle) {
-            Instance currentInstance = instancesClient.get(project, zone, instance);
+            Instance currentInstance = gcpClient.get();
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
                 log.info("Stopping instance");
-                instancesClient.stopAsync(project, zone, instance);
+                gcpClient.stop();
             }
         }
     }

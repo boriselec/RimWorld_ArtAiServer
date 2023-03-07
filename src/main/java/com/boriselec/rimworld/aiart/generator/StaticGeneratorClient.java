@@ -1,5 +1,6 @@
 package com.boriselec.rimworld.aiart.generator;
 
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ public class StaticGeneratorClient implements GeneratorClient {
     }
 
     @Override
+    @Timed("generation.time")
     public InputStream getImage(String description) throws IOException, InterruptedException, URISyntaxException {
         log.info("Getting image...");
 
