@@ -20,10 +20,12 @@ public class AiArtController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
+    private final Counters counters;
 
-    public AiArtController(ImageRepository imageRepository, JobQueue jobQueue) {
+    public AiArtController(ImageRepository imageRepository, JobQueue jobQueue, Counters counters) {
         this.imageRepository = imageRepository;
         this.jobQueue = jobQueue;
+        this.counters = counters;
     }
 
     @PostMapping("/generate")
@@ -40,13 +42,16 @@ public class AiArtController {
         try {
             int position = jobQueue.putIfNotPresent(rq);
             response = "Queued: " + position;
+            counters.rsQueued().increment();
         } catch (QueueLimitException e) {
             response = e.getMessage() + ". Try later.";
+            counters.rsLimit().increment();
         }
         return getInProgressResponse(response);
     }
 
     private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
+        counters.rsImage().increment();
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(new InputStreamResource(is));
