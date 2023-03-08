@@ -1,26 +1,27 @@
 package com.boriselec.rimworld.aiart.generator;
 
-import com.boriselec.rimworld.aiart.Counters;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 @ConditionalOnProperty("gcp.project")
 public class GcpMonitoring {
     private final GcpClient gcpClient;
-    private final Counters counters;
 
-    public GcpMonitoring(GcpClient gcpClient, Counters counters) {
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
+
+    public GcpMonitoring(GcpClient gcpClient, MeterRegistry meterRegistry) {
         this.gcpClient = gcpClient;
-        this.counters = counters;
+        meterRegistry.gauge("gcp.running", isRunning, isRunning -> isRunning.get() ? 1 : 0);
     }
 
     @Scheduled(fixedRate = 1000)
     public void process() {
-        boolean isRunning = "RUNNING".equals(gcpClient.get().getStatus());
-        if (isRunning) {
-            counters.gcpRunningSeconds().increment();
-        }
+        String status = gcpClient.get().getStatus();
+        isRunning.set("RUNNING".equals(status));
     }
 }
