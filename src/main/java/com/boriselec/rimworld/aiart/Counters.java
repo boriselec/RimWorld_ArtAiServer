@@ -3,6 +3,9 @@ package com.boriselec.rimworld.aiart;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public record Counters(
         Counter rsImage,
         Counter rsQueued,
@@ -13,6 +16,10 @@ public record Counters(
                 registry.counter("rs.image"),
                 registry.counter("rs.queued"),
                 registry.counter("rs.limit"),
-                registry.counter("translate.chars"));
+                registry.counter("translate.chars." + timestamp()));
+    }
+
+    private static String timestamp() {
+        return LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
     }
 }
