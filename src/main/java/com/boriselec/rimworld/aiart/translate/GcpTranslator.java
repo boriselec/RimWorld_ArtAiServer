@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Optional;
+
 @Component
 @ConditionalOnProperty("gcp.project")
 public class GcpTranslator implements Translator {
@@ -21,6 +24,8 @@ public class GcpTranslator implements Translator {
     private final LocationName apiLocation;
     private final Counters counters;
 
+    private SimpleImmutableEntry<String, String> cachedLastQuery;
+
     public GcpTranslator(TranslationServiceClient client, GcpClient.GcpInstance gcpInstance, Counters counters) {
         this.client = client;
         this.counters = counters;
@@ -30,6 +35,12 @@ public class GcpTranslator implements Translator {
     public String translateFrom(Language language, String description) {
         if (language == TARGET_LANG) {
             return description;
+        }
+        Optional<String> cached = Optional.ofNullable(cachedLastQuery)
+                .filter(c -> c.getKey().equals(description))
+                .map(SimpleImmutableEntry::getValue);
+        if (cached.isPresent()) {
+            return cached.get();
         }
 
         TranslateTextRequest request =
@@ -45,6 +56,7 @@ public class GcpTranslator implements Translator {
 
         String translatedText = response.getTranslations(0).getTranslatedText();
         log.info(description + " -> " + translatedText);
+        cachedLastQuery = new SimpleImmutableEntry<>(description, translatedText);
         return translatedText;
     }
 }
