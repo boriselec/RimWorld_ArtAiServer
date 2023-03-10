@@ -6,11 +6,13 @@ import io.micrometer.core.instrument.MeterRegistry;
 public record Counters(
         Counter rsImage,
         Counter rsQueued,
-        Counter rsLimit) {
+        Counter rsLimit,
+        Counter translatedChars) {
     public Counters(MeterRegistry registry) {
         this(
                 registry.counter("rs.image"),
                 registry.counter("rs.queued"),
-                registry.counter("rs.limit"));
+                registry.counter("rs.limit"),
+                registry.counter("translate.chars"));
     }
 }

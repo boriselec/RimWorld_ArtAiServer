@@ -4,17 +4,21 @@ import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GcpClient;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.StaticGeneratorClient;
+import com.boriselec.rimworld.aiart.translate.Translator;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.compute.v1.InstancesClient;
 import com.google.cloud.compute.v1.InstancesSettings;
+import com.google.cloud.translate.v3.TranslationServiceClient;
+import com.google.cloud.translate.v3.TranslationServiceSettings;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -46,15 +50,34 @@ public class Application {
 
     @Bean
     @ConditionalOnProperty("gcp.project")
-    public InstancesClient instancesClient(@Value("${gcp.key.path}") String keyPath) throws IOException {
+    public CredentialsProvider gcpCredentials(@Value("${gcp.key.path}") String keyPath) throws IOException {
         Credentials credentials = ServiceAccountCredentials.fromStream(new FileInputStream(keyPath));
-        CredentialsProvider provider = FixedCredentialsProvider.create(credentials);
+        return FixedCredentialsProvider.create(credentials);
+    }
+
+    @Bean
+    @ConditionalOnProperty("gcp.project")
+    public InstancesClient instancesClient(CredentialsProvider provider) throws IOException {
         InstancesSettings settings = InstancesSettings.newBuilder()
                 .setCredentialsProvider(provider)
                 .build();
         return InstancesClient.create(settings);
     }
 
+    @Bean
+    @ConditionalOnProperty("gcp.project")
+    public TranslationServiceClient translationServiceClient(CredentialsProvider provider) throws IOException {
+        TranslationServiceSettings settings = TranslationServiceSettings.newBuilder()
+                .setCredentialsProvider(provider)
+                .build();
+        return TranslationServiceClient.create(settings);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(Translator.class)
+    public Translator mockTranslator() {
+        return (language, description) -> description;
+    }
 
     @Bean
     @ConditionalOnProperty("generator.url")
