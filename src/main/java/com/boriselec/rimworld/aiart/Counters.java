@@ -3,7 +3,7 @@ package com.boriselec.rimworld.aiart;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public record Counters(
@@ -20,6 +20,6 @@ public record Counters(
     }
 
     private static String timestamp() {
-        return LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        return ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
     }
 }
