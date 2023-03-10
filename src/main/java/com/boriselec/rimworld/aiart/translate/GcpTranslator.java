@@ -6,12 +6,15 @@ import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty("gcp.project")
 public class GcpTranslator implements Translator {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static final Language TARGET_LANG = Language.ENGLISH;
 
     private final TranslationServiceClient client;
@@ -40,6 +43,8 @@ public class GcpTranslator implements Translator {
         TranslateTextResponse response = client.translateText(request);
         counters.translatedChars().increment(description.length());
 
-        return response.getTranslations(0).getTranslatedText();
+        String translatedText = response.getTranslations(0).getTranslatedText();
+        log.info(description + " -> " + translatedText);
+        return translatedText;
     }
 }
