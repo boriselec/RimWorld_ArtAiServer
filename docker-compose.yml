@@ -8,6 +8,7 @@ services:
       - "8080:8080"
     volumes:
       - "./images:/mnt/images"
+      - "./huggingface:/home/huggingface/.cache/huggingface"
     environment:
       - GENERATOR_URL=http://generator:8081/generate
   generator:
