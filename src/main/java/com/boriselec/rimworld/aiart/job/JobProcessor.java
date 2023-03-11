@@ -38,6 +38,7 @@ public class JobProcessor {
             Request request = queue.peek();
             String description = ArtDescriptionTextProcessor.getDescription(request);
             String englishDescription = translator.translateFrom(request.language(), description);
+            log.info("Prepared description: " + englishDescription);
             try {
                 InputStream image = generatorClient.getImage(englishDescription);
                 imageRepository.saveImage(image, request.getArtDescription());
