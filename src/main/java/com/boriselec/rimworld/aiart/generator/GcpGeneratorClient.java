@@ -3,6 +3,7 @@ package com.boriselec.rimworld.aiart.generator;
 import com.google.cloud.compute.v1.Instance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,9 +22,11 @@ public class GcpGeneratorClient implements GeneratorClient {
     private final GcpClient gcpClient;
 
     private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
+    private final int stopAfterSeconds;
 
-    public GcpGeneratorClient(GcpClient gcpClient) {
+    public GcpGeneratorClient(GcpClient gcpClient, @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds) {
         this.gcpClient = gcpClient;
+        this.stopAfterSeconds = stopAfterSeconds;
     }
 
     @Override
@@ -52,7 +55,7 @@ public class GcpGeneratorClient implements GeneratorClient {
 
     @Scheduled(fixedDelay = 10_000)
     public void stopIfIdle() {
-        boolean isIdle = LocalDateTime.now().minusMinutes(3).isAfter(lastRequest.get());
+        boolean isIdle = LocalDateTime.now().minusSeconds(stopAfterSeconds).isAfter(lastRequest.get());
         if (isIdle) {
             Instance currentInstance = gcpClient.get();
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
