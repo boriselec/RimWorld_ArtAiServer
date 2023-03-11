@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.ArtDescription;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -15,7 +16,11 @@ import java.util.Optional;
 
 @Component
 public class ImageRepository {
-    private static final String IMAGE_FOLDER = "/mnt/images/";
+    private final String imageFolder;
+
+    public ImageRepository(@Value("${image.folder}") String imageFolder) {
+        this.imageFolder = imageFolder;
+    }
 
     public Optional<InputStream> getImage(ArtDescription desc) {
         try {
@@ -33,6 +38,6 @@ public class ImageRepository {
     }
 
     private String getFilePath(ArtDescription desc) {
-        return IMAGE_FOLDER + desc.hashCode() + ".png";
+        return imageFolder + desc.hashCode() + ".png";
     }
 }
