@@ -21,11 +21,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @SpringBootApplication
 @EnableScheduling
@@ -82,6 +85,12 @@ public class Application {
     @Bean
     @ConditionalOnProperty("generator.url")
     public GeneratorClient staticGeneratorClient(@Value("${generator.url}") String url) {
+        return staticGeneratorClientPrototype(url);
+    }
+
+    @Bean(autowireCandidate = false)
+    @Scope(SCOPE_PROTOTYPE)
+    public StaticGeneratorClient staticGeneratorClientPrototype(String url) {
         return new StaticGeneratorClient(url);
     }
 
