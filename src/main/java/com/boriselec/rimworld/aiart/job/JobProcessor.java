@@ -41,7 +41,8 @@ public class JobProcessor {
             log.info("Prepared description: " + englishDescription);
             try {
                 InputStream image = generatorClient.getImage(englishDescription);
-                imageRepository.saveImage(image, request.getArtDescription());
+                String filePath = imageRepository.getFilePath(request.getArtDescription());
+                imageRepository.saveImage(image, filePath, englishDescription);
                 queue.remove();
                 log.info("Queue size: " + queue.size());
             } catch (GeneratorNotReadyException e) {
