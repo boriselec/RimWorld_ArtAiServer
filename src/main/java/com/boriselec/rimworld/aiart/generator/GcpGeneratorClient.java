@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,12 +20,15 @@ import java.util.concurrent.atomic.AtomicReference;
 @ConditionalOnProperty("gcp.project")
 public class GcpGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final GcpClient gcpClient;
 
-    private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
+    private final ApplicationContext appCtx;
+    private final GcpClient gcpClient;
     private final int stopAfterSeconds;
 
-    public GcpGeneratorClient(GcpClient gcpClient, @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds) {
+    private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
+
+    public GcpGeneratorClient(ApplicationContext appCtx, GcpClient gcpClient, @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds) {
+        this.appCtx = appCtx;
         this.gcpClient = gcpClient;
         this.stopAfterSeconds = stopAfterSeconds;
     }
@@ -45,7 +49,7 @@ public class GcpGeneratorClient implements GeneratorClient {
             case "RUNNING":
                 String ip = currentInstance.getNetworkInterfaces(0).getAccessConfigs(0).getNatIP();
                 String url = String.format("http://%s:8081/generate", ip);
-                return new StaticGeneratorClient(url);
+                return appCtx.getBean(StaticGeneratorClient.class, url);
             case "TERMINATED":
                 gcpClient.start();
             default:
