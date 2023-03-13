@@ -24,18 +24,18 @@ public class GcpGeneratorClient implements GeneratorClient {
     private final ApplicationContext appCtx;
     private final GcpClient gcpClient;
     private final int stopAfterSeconds;
-    private final int stopUnresponsiveSeconds;
+    private final int stopAfterFailedTries;
 
     private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
-    private final AtomicReference<LocalDateTime> lastResponse = new AtomicReference<>(LocalDateTime.now());
+    private final AtomicReference<Integer> unresponsiveCount = new AtomicReference<>(0);
 
     public GcpGeneratorClient(ApplicationContext appCtx, GcpClient gcpClient,
                               @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds,
-                              @Value("${gcp.unresponsive.stopAfterSeconds}") int stopUnresponsiveSeconds) {
+                              @Value("${gcp.unresponsive.stopAfterFailedTries}") int stopAfterFailedTries) {
         this.appCtx = appCtx;
         this.gcpClient = gcpClient;
         this.stopAfterSeconds = stopAfterSeconds;
-        this.stopUnresponsiveSeconds = stopUnresponsiveSeconds;
+        this.stopAfterFailedTries = stopAfterFailedTries;
     }
 
     @Override
@@ -43,10 +43,12 @@ public class GcpGeneratorClient implements GeneratorClient {
         lastRequest.set(LocalDateTime.now());
         try {
             InputStream image = getClient().getImage(description);
-            lastResponse.set(LocalDateTime.now());
+            unresponsiveCount.set(0);
             return image;
         } catch (ConnectException e) {
-            throw new GeneratorNotReadyException("GCP generator is running but not available yet");
+            int tryCount = unresponsiveCount.getAndUpdate(i -> i + 1);
+            throw new GeneratorNotReadyException("GCP generator is running but not available yet." +
+                    "try count: " + tryCount);
         }
     }
 
@@ -67,15 +69,13 @@ public class GcpGeneratorClient implements GeneratorClient {
     @Scheduled(fixedDelay = 10_000)
     public void stopIfIdle() {
         boolean isIdle = LocalDateTime.now().minusSeconds(stopAfterSeconds).isAfter(lastRequest.get());
-        boolean isUnresponsive = LocalDateTime.now().minusSeconds(stopUnresponsiveSeconds).isAfter(lastResponse.get());
+        boolean isUnresponsive = unresponsiveCount.get() > stopAfterFailedTries;
         if (isIdle || isUnresponsive) {
             Instance currentInstance = gcpClient.get();
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
                 log.info("Stopping instance");
                 gcpClient.stop();
-                // reset counters
-                lastRequest.set(LocalDateTime.now());
-                lastResponse.set(LocalDateTime.now());
+                unresponsiveCount.set(0);
             }
         }
     }
