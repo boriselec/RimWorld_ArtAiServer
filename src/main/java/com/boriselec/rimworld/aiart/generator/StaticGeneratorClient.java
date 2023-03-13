@@ -4,6 +4,7 @@ import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpResponse.ResponseInfo;
+import java.time.Duration;
 
 public class StaticGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -32,6 +34,7 @@ public class StaticGeneratorClient implements GeneratorClient {
         log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
+                .timeout(Duration.ofSeconds(60))
                 .POST(HttpRequest.BodyPublishers.ofString(description))
                 .build();
         InputStream response = httpClient
@@ -43,9 +46,16 @@ public class StaticGeneratorClient implements GeneratorClient {
     }
 
     private BodySubscriber<InputStream> processResponse(ResponseInfo responseInfo) {
-        responseInfo.headers().firstValue(HttpHeaders.CONTENT_TYPE)
-                .filter(contentType -> MediaType.IMAGE_PNG.toString().equals(contentType))
-                .orElseThrow();
+        int statusCode = responseInfo.statusCode();
+        if (statusCode != HttpStatus.OK.value()) {
+            throw new IllegalStateException("HTTP code: " + statusCode);
+        }
+        String contentType = responseInfo.headers()
+                .firstValue(HttpHeaders.CONTENT_TYPE)
+                .orElse(null);
+        if (!MediaType.IMAGE_PNG.toString().equals(contentType)) {
+            throw new IllegalStateException("Content-type: " + contentType);
+        }
         return BodySubscribers.ofInputStream();
     }
 }
