@@ -73,6 +73,9 @@ public class GcpGeneratorClient implements GeneratorClient {
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
                 log.info("Stopping instance");
                 gcpClient.stop();
+                // reset counters
+                lastRequest.set(LocalDateTime.now());
+                lastResponse.set(LocalDateTime.now());
             }
         }
     }
