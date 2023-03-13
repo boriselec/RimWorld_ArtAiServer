@@ -1,5 +1,6 @@
 package com.boriselec.rimworld.aiart.job;
 
+import com.boriselec.rimworld.aiart.Counters;
 import com.boriselec.rimworld.aiart.data.Request;
 import org.springframework.stereotype.Component;
 
@@ -9,9 +10,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Component
 public class JobQueue {
     private final LinkedBlockingQueue<Request> queue;
+    private final Counters counters;
 
-    public JobQueue(LinkedBlockingQueue<Request> queue) {
+    public JobQueue(LinkedBlockingQueue<Request> queue, Counters counters) {
         this.queue = queue;
+        this.counters = counters;
     }
 
     /**
@@ -27,6 +30,7 @@ public class JobQueue {
         for (int i = 0; i < array.length; i++) {
             Request queued = (Request) array[i];
             if (queued.getArtDescription().equals(request.getArtDescription())) {
+                counters.queuePresent().increment();
                 return Optional.of(i);
             }
         }
@@ -35,11 +39,14 @@ public class JobQueue {
 
     private int putInQueue(Request request) {
         if (isUserLimitExceeded(request.userId())) {
+            counters.queueLimitUser().increment();
             throw new QueueLimitException("Limit exceeded");
         }
         if (queue.offer(request)) {
+            counters.queueNew().increment();
             return queue.size() - 1;
         } else {
+            counters.queueLimitOverall().increment();
             throw new QueueLimitException("Queue is full");
         }
     }
