@@ -24,20 +24,27 @@ public class GcpGeneratorClient implements GeneratorClient {
     private final ApplicationContext appCtx;
     private final GcpClient gcpClient;
     private final int stopAfterSeconds;
+    private final int stopUnresponsiveSeconds;
 
     private final AtomicReference<LocalDateTime> lastRequest = new AtomicReference<>(LocalDateTime.now());
+    private final AtomicReference<LocalDateTime> lastResponse = new AtomicReference<>(LocalDateTime.now());
 
-    public GcpGeneratorClient(ApplicationContext appCtx, GcpClient gcpClient, @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds) {
+    public GcpGeneratorClient(ApplicationContext appCtx, GcpClient gcpClient,
+                              @Value("${gcp.idle.stopAfterSeconds}") int stopAfterSeconds,
+                              @Value("${gcp.unresponsive.stopAfterSeconds}") int stopUnresponsiveSeconds) {
         this.appCtx = appCtx;
         this.gcpClient = gcpClient;
         this.stopAfterSeconds = stopAfterSeconds;
+        this.stopUnresponsiveSeconds = stopUnresponsiveSeconds;
     }
 
     @Override
     public InputStream getImage(String description) throws IOException, URISyntaxException, InterruptedException {
         lastRequest.set(LocalDateTime.now());
         try {
-            return getClient().getImage(description);
+            InputStream image = getClient().getImage(description);
+            lastResponse.set(LocalDateTime.now());
+            return image;
         } catch (ConnectException e) {
             throw new GeneratorNotReadyException("GCP generator is running but not available yet");
         }
@@ -60,7 +67,8 @@ public class GcpGeneratorClient implements GeneratorClient {
     @Scheduled(fixedDelay = 10_000)
     public void stopIfIdle() {
         boolean isIdle = LocalDateTime.now().minusSeconds(stopAfterSeconds).isAfter(lastRequest.get());
-        if (isIdle) {
+        boolean isUnresponsive = LocalDateTime.now().minusSeconds(stopUnresponsiveSeconds).isAfter(lastResponse.get());
+        if (isIdle || isUnresponsive) {
             Instance currentInstance = gcpClient.get();
             if (!"TERMINATED".equals(currentInstance.getStatus())) {
                 log.info("Stopping instance");
