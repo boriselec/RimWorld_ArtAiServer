@@ -40,4 +40,17 @@ class ArtDescriptionTextProcessorTest {
 
         Assertions.assertEquals("test. test. test.", description);
     }
+
+    @Test
+    public void testFurnitureModClear() {
+        String artDesc = "This sculpture shows Lada Ballard trying to light a fire and shivering uncontrollably. A cold blue moon looms in the background.";
+        String thingDesc = "A small-size piece of material on a decorative pedestal, sculpted into an artistic form. (Vanilla Furniture Expanded - Art) ";
+        Request request = new Request(artDesc, thingDesc, "", Language.ENGLISH);
+
+        String description = ArtDescriptionTextProcessor.getDescription(request);
+
+        Assertions.assertEquals("A small-size piece of material on a decorative pedestal, sculpted into an artistic form. " +
+                "This sculpture shows Lada Ballard trying to light a fire and shivering uncontrollably. A cold blue moon looms in the background.",
+                description);
+    }
 }
