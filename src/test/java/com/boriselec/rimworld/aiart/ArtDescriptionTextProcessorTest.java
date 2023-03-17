@@ -53,4 +53,17 @@ class ArtDescriptionTextProcessorTest {
                 "This sculpture shows Lada Ballard trying to light a fire and shivering uncontrollably. A cold blue moon looms in the background.",
                 description);
     }
+
+    @Test
+    public void testDresserUnrelatedClear() {
+        String artDesc = "An engraving on this furniture is shaped like Barry Wollertsen cupping Caraleigh Tuzii's chin with a sense of tenderness. Caraleigh shyly covers Barry's eyes. The work symbolizes debt. Provocatively, three shamans appear in the distance. This image relates to Barry's kiss with Caraleigh.";
+        String thingDesc = "A dresser. Gives a small comfort bonus to all nearby beds. Placing more than one dresser near the same bed has no effect.";
+        Request request = new Request(artDesc, thingDesc, "", Language.ENGLISH);
+
+        String description = ArtDescriptionTextProcessor.getDescription(request);
+
+        Assertions.assertEquals("A dresser. Gives a small comfort bonus to all nearby beds. " +
+                        "An engraving on this furniture is shaped like Barry Wollertsen cupping Caraleigh Tuzii's chin with a sense of tenderness. Caraleigh shyly covers Barry's eyes. The work symbolizes debt. Provocatively, three shamans appear in the distance. This image relates to Barry's kiss with Caraleigh.",
+                description);
+    }
 }
