@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class ImageRepository {
@@ -65,7 +66,8 @@ public class ImageRepository {
     }
 
     public String getFilePath(ArtDescription desc) {
-        return imageFolder + desc.hashCode() + ".png";
+        String uniqueId = UUID.nameUUIDFromBytes(desc.toString().getBytes()).toString();
+        return imageFolder + uniqueId + ".png";
     }
 
     private void appendMetadata(IIOMetadataNode root, String key, String value) {
