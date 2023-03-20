@@ -34,7 +34,7 @@ public class JobProcessor {
 
     @Scheduled(fixedDelay = 1000)
     public void process() throws Exception {
-        if (!queue.isEmpty()) {
+        while (!queue.isEmpty()) {
             Request request = queue.peek();
             String description = ArtDescriptionTextProcessor.getDescription(request);
             String englishDescription = translator.translateFrom(request.language(), description);
@@ -47,6 +47,7 @@ public class JobProcessor {
                 log.info("Queue size: " + queue.size());
             } catch (GeneratorNotReadyException e) {
                 log.warn(e.getMessage());
+                return;
             }
         }
     }
