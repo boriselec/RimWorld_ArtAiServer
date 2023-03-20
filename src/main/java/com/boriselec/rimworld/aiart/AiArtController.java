@@ -41,7 +41,8 @@ public class AiArtController {
         String response;
         try {
             int position = jobQueue.putIfNotPresent(rq);
-            response = "Queued: " + position;
+            response = "Image is generating... Please wait" +
+                    "\n\nQueued: " + position;
             counters.rsQueued().increment();
         } catch (QueueLimitException e) {
             response = e.getMessage() + ". Try later.";
