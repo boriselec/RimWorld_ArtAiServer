@@ -9,10 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,13 +36,15 @@ public class GcpGeneratorClient implements GeneratorClient {
     }
 
     @Override
-    public InputStream getImage(String description) throws IOException, URISyntaxException, InterruptedException {
+    public InputStream getImage(String description) throws GeneratorNotReadyException {
         lastRequest.set(LocalDateTime.now());
         try {
             InputStream image = getClient().getImage(description);
             unresponsiveCount.set(0);
             return image;
-        } catch (ConnectException e) {
+        } catch (GeneratorNotReadyException e) {
+            throw e;
+        } catch (Exception e) {
             int tryCount = unresponsiveCount.getAndUpdate(i -> i + 1);
             throw new GeneratorNotReadyException("GCP generator is running but not available yet." +
                     "try count: " + tryCount);
