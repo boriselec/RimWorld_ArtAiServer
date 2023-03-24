@@ -43,7 +43,8 @@ public class JobProcessor {
                 InputStream image = generatorClient.getImage(englishDescription);
                 String filePath = imageRepository.getFilePath(request.getArtDescription());
                 imageRepository.saveImage(image, filePath, englishDescription);
-                queue.remove();
+                //noinspection ResultOfMethodCallIgnored
+                queue.remove(request);
                 log.info("Queue size: " + queue.size());
             } catch (GeneratorNotReadyException e) {
                 log.warn(e.getMessage());
