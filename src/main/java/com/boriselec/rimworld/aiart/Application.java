@@ -42,8 +42,9 @@ public class Application implements SchedulingConfigurer {
     }
 
     @Bean
-    public LinkedBlockingQueue<Request> linkedBlockingQueue(MeterRegistry meterRegistry) {
-        var queue = new LinkedBlockingQueue<Request>(240);
+    public LinkedBlockingQueue<Request> linkedBlockingQueue(MeterRegistry meterRegistry,
+                                                            @Value("${queue.size.max}") int queueMaxSize) {
+        var queue = new LinkedBlockingQueue<Request>(queueMaxSize);
         return meterRegistry.gauge("queue.size", queue, LinkedBlockingQueue::size);
     }
 

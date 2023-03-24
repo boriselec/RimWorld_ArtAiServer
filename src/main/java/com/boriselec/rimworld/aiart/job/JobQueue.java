@@ -2,6 +2,7 @@ package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.Counters;
 import com.boriselec.rimworld.aiart.data.Request;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -11,10 +12,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class JobQueue {
     private final LinkedBlockingQueue<Request> queue;
     private final Counters counters;
+    private int userLimit;
 
-    public JobQueue(LinkedBlockingQueue<Request> queue, Counters counters) {
+    public JobQueue(LinkedBlockingQueue<Request> queue, Counters counters,
+                    @Value("${limit.user}") int userLimit) {
         this.queue = queue;
         this.counters = counters;
+        this.userLimit = userLimit;
     }
 
     /**
@@ -55,6 +59,6 @@ public class JobQueue {
         return queue.stream()
                 .map(Request::userId)
                 .filter(userId::equals)
-                .count() > 10;
+                .count() > userLimit;
     }
 }
