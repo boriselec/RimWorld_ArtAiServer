@@ -30,7 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
@@ -42,10 +42,10 @@ public class Application implements SchedulingConfigurer {
     }
 
     @Bean
-    public LinkedBlockingQueue<Request> linkedBlockingQueue(MeterRegistry meterRegistry,
+    public LinkedBlockingDeque<Request> linkedBlockingQueue(MeterRegistry meterRegistry,
                                                             @Value("${queue.size.max}") int queueMaxSize) {
-        var queue = new LinkedBlockingQueue<Request>(queueMaxSize);
-        return meterRegistry.gauge("queue.size", queue, LinkedBlockingQueue::size);
+        var queue = new LinkedBlockingDeque<Request>(queueMaxSize);
+        return meterRegistry.gauge("queue.size", queue, LinkedBlockingDeque::size);
     }
 
     @Bean

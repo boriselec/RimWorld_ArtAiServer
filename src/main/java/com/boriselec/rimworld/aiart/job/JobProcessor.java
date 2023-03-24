@@ -12,17 +12,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 @Component
 public class JobProcessor {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final LinkedBlockingQueue<Request> queue;
+    private final LinkedBlockingDeque<Request> queue;
     private final ImageRepository imageRepository;
     private final GeneratorClient generatorClient;
     private final Translator translator;
 
-    public JobProcessor(LinkedBlockingQueue<Request> queue,
+    public JobProcessor(LinkedBlockingDeque<Request> queue,
                         ImageRepository imageRepository,
                         GeneratorClient generatorClient,
                         Translator translator) {

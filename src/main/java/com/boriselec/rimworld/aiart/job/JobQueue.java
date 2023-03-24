@@ -5,20 +5,24 @@ import com.boriselec.rimworld.aiart.data.Request;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 @Component
 public class JobQueue {
-    private final LinkedBlockingQueue<Request> queue;
+    private final LinkedBlockingDeque<Request> queue;
     private final Counters counters;
-    private int userLimit;
+    private final int userLimit;
+    private final List<String> priorityUserIds;
 
-    public JobQueue(LinkedBlockingQueue<Request> queue, Counters counters,
-                    @Value("${limit.user}") int userLimit) {
+    public JobQueue(LinkedBlockingDeque<Request> queue, Counters counters,
+                    @Value("${limit.user}") int userLimit,
+                    @Value("${priority.userid.list}") List<String> priorityUserIds) {
         this.queue = queue;
         this.counters = counters;
         this.userLimit = userLimit;
+        this.priorityUserIds = priorityUserIds;
     }
 
     /**
@@ -46,13 +50,19 @@ public class JobQueue {
             counters.queueLimitUser().increment();
             throw new QueueLimitException("Limit exceeded");
         }
-        if (queue.offer(request)) {
+        if (put(request)) {
             counters.queueNew().increment();
-            return queue.size() - 1;
+            return getExistingPosition(request).orElseThrow();
         } else {
             counters.queueLimitOverall().increment();
             throw new QueueLimitException("Queue is full");
         }
+    }
+
+    private boolean put(Request request) {
+        return priorityUserIds.contains(request.userId())
+                ? queue.offerFirst(request)
+                : queue.offer(request);
     }
 
     private boolean isUserLimitExceeded(String userId) {
