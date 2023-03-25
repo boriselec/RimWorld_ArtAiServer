@@ -66,9 +66,11 @@ public class JobQueue {
     }
 
     private boolean isUserLimitExceeded(String userId) {
+        // increase limit for non-steam users, since they have same id
+        int refinedUserLimit = "unknown".equals(userId) ? userLimit * 2 : userLimit;
         return queue.stream()
                 .map(Request::userId)
                 .filter(userId::equals)
-                .count() >= userLimit;
+                .count() >= refinedUserLimit;
     }
 }
