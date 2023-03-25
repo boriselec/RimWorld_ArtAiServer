@@ -69,6 +69,6 @@ public class JobQueue {
         return queue.stream()
                 .map(Request::userId)
                 .filter(userId::equals)
-                .count() > userLimit;
+                .count() >= userLimit;
     }
 }
