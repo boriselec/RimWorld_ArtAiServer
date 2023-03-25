@@ -30,11 +30,20 @@ public class AiArtController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generate(@RequestBody String postData) {
-        log.info("Received: " + postData);
+        log.info("Received /generate: " + postData);
         Request rq = Request.deserialize(postData);
         return imageRepository.getImage(rq.getArtDescription())
                 .map(this::getImageResponse)
                 .orElseGet(() -> process(rq));
+    }
+
+    @PostMapping("/get")
+    public ResponseEntity<?> get(@RequestBody String postData) {
+        log.info("Received /get: " + postData);
+        Request rq = Request.deserialize(postData);
+        return imageRepository.getImage(rq.getArtDescription())
+                .map(this::getImageResponse)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     private ResponseEntity<InputStreamResource> process(Request rq) {
