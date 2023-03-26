@@ -66,4 +66,17 @@ class ArtDescriptionTextProcessorTest {
                         "An engraving on this furniture is shaped like Barry Wollertsen cupping Caraleigh Tuzii's chin with a sense of tenderness. Caraleigh shyly covers Barry's eyes. The work symbolizes debt. Provocatively, three shamans appear in the distance. This image relates to Barry's kiss with Caraleigh.",
                 description);
     }
+
+    @Test
+    public void testColourTagClear() {
+        String artDesc = "<color=#9f40ff>bloodlust</color> <color=#9f40ff>cannibal</color> <color=#d4af37>asexual</color> woman Trained Ghoul light-skinned with shoulder-length blond hair in blue clothes age 25";
+        String thingDesc = "beautiful portrait of a human";
+        Request request = new Request(artDesc, thingDesc, "", Language.ENGLISH);
+
+        String description = ArtDescriptionTextProcessor.getDescription(request);
+
+        Assertions.assertEquals("beautiful portrait of a human " +
+                        "bloodlust cannibal asexual woman Trained Ghoul light-skinned with shoulder-length blond hair in blue clothes age 25",
+                description);
+    }
 }
