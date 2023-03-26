@@ -79,4 +79,17 @@ class ArtDescriptionTextProcessorTest {
                         "bloodlust cannibal asexual woman Trained Ghoul light-skinned with shoulder-length blond hair in blue clothes age 25",
                 description);
     }
+
+    @Test
+    public void testTalentClear() {
+        String artDesc = "thin lazy Priest <color=#9f40ff>Talent: Chef</color> male crashbaby dark-skinned with shoulder-length brunette hair clean-shaven in teal clothes age 18";
+        String thingDesc = "beautiful portrait of a human";
+        Request request = new Request(artDesc, thingDesc, "", Language.ENGLISH);
+
+        String description = ArtDescriptionTextProcessor.getDescription(request);
+
+        Assertions.assertEquals("beautiful portrait of a human " +
+                        "thin lazy Priest Chef male crashbaby dark-skinned with shoulder-length brunette hair clean-shaven in teal clothes age 18",
+                description);
+    }
 }
