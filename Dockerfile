@@ -2,6 +2,7 @@
 FROM eclipse-temurin:17-jdk-alpine as build
 COPY . /home
 RUN cd /home && \
+    sed -i 's/\r$//' mvnw && \
     ./mvnw clean package
 
 # production environment
