@@ -1,6 +1,8 @@
 package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.ArtDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,7 @@ import java.util.UUID;
 
 @Component
 public class ImageRepository {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String imageFolder;
 
     public ImageRepository(@Value("${image.folder}") String imageFolder) {
@@ -58,6 +61,7 @@ public class ImageRepository {
                     writer.setOutput(output);
                     writer.write(image);
                 }
+                log.info("New image: " + filePath);
             } finally {
                 Optional.ofNullable(reader).ifPresent(ImageReader::dispose);
                 Optional.ofNullable(writer).ifPresent(ImageWriter::dispose);
