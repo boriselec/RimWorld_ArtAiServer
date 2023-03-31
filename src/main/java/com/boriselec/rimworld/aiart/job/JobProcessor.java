@@ -2,9 +2,10 @@ package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
 import com.boriselec.rimworld.aiart.ImageRepository;
+import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.data.Request;
-import com.boriselec.rimworld.aiart.generator.GeneratorNotReadyException;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
+import com.boriselec.rimworld.aiart.generator.GeneratorNotReadyException;
 import com.boriselec.rimworld.aiart.translate.Translator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,7 @@ public class JobProcessor {
     public void process() throws Exception {
         while (!queue.isEmpty()) {
             Request request = queue.peek();
-            String description = ArtDescriptionTextProcessor.getDescription(request);
-            String englishDescription = translator.translateFrom(request.language(), description);
+            String englishDescription = prepare(request);
             log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
             try {
                 InputStream image = generatorClient.getImage(englishDescription);
@@ -51,5 +51,12 @@ public class JobProcessor {
                 return;
             }
         }
+    }
+
+    private String prepare(Request request) {
+        ArtDescription originalDesc = request.getArtDescription();
+        ArtDescription preparedDesc = ArtDescriptionTextProcessor.process(originalDesc);
+        ArtDescription englishDesc = translator.translateFrom(request.language(), preparedDesc);
+        return englishDesc.toString();
     }
 }

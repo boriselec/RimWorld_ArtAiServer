@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart.translate;
 
 import com.boriselec.rimworld.aiart.Counters;
+import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.generator.GcpClient;
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
@@ -21,7 +22,7 @@ public class GcpTranslator implements Translator {
     private final LocationName apiLocation;
     private final Counters counters;
 
-    private SimpleImmutableEntry<String, String> cachedLastQuery;
+    private SimpleImmutableEntry<ArtDescription, ArtDescription> cachedLastQuery;
 
     public GcpTranslator(TranslationServiceClient client, GcpClient.GcpInstance gcpInstance, Counters counters) {
         this.client = client;
@@ -29,17 +30,25 @@ public class GcpTranslator implements Translator {
         this.apiLocation = LocationName.of(gcpInstance.project(), "global");
     }
 
-    public String translateFrom(Language language, String description) {
+    public ArtDescription translateFrom(Language language, ArtDescription description) {
         if (language == TARGET_LANG) {
             return description;
         }
-        Optional<String> cached = Optional.ofNullable(cachedLastQuery)
+        Optional<ArtDescription> cached = Optional.ofNullable(cachedLastQuery)
                 .filter(c -> c.getKey().equals(description))
                 .map(SimpleImmutableEntry::getValue);
         if (cached.isPresent()) {
             return cached.get();
         }
 
+        ArtDescription translated = new ArtDescription(
+                translateFrom(language, description.artDesc()),
+                translateFrom(language, description.thingDesc()));
+        cachedLastQuery = new SimpleImmutableEntry<>(description, translated);
+        return translated;
+    }
+
+    private String translateFrom(Language language, String description) {
         TranslateTextRequest request =
                 TranslateTextRequest.newBuilder()
                         .setParent(apiLocation.toString())
@@ -51,8 +60,6 @@ public class GcpTranslator implements Translator {
         TranslateTextResponse response = client.translateText(request);
         counters.translatedChars().increment(description.length());
 
-        String translatedText = response.getTranslations(0).getTranslatedText();
-        cachedLastQuery = new SimpleImmutableEntry<>(description, translatedText);
-        return translatedText;
+        return response.getTranslations(0).getTranslatedText();
     }
 }

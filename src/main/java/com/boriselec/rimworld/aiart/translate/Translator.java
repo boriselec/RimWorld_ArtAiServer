@@ -1,5 +1,7 @@
 package com.boriselec.rimworld.aiart.translate;
 
+import com.boriselec.rimworld.aiart.data.ArtDescription;
+
 public interface Translator {
-    String translateFrom(Language language, String description);
+    ArtDescription translateFrom(Language language, ArtDescription description);
 }
