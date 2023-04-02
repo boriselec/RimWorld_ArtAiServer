@@ -28,8 +28,8 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -118,8 +118,8 @@ public class Application implements SchedulingConfigurer {
 
     @Bean
     public Map<String, String> thingDescCache(MeterRegistry meterRegistry) {
-        var cache = new HashMap<String, String>();
-        return meterRegistry.gauge("thingDescCache.size", cache, Map::size);
+        var cache = new ConcurrentHashMap<String, String>();
+        return meterRegistry.gauge("thingDescCache.size", cache, ConcurrentHashMap::size);
     }
 
     @Override
