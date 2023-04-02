@@ -1,7 +1,7 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
-import com.boriselec.rimworld.aiart.ImageRepository;
+import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
