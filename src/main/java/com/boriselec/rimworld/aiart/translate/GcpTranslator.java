@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @ConditionalOnProperty("gcp.project")
@@ -24,7 +25,7 @@ public class GcpTranslator implements Translator {
     private final Counters counters;
     private final Map<String, String> thingDescCache;
 
-    private SimpleImmutableEntry<ArtDescription, ArtDescription> cachedLastQuery;
+    private final AtomicReference<SimpleImmutableEntry<ArtDescription, ArtDescription>> cachedLastQuery;
 
     public GcpTranslator(TranslationServiceClient client, GcpClient.GcpInstance gcpInstance, Counters counters,
                          Map<String, String> thingDescCache) {
@@ -32,13 +33,14 @@ public class GcpTranslator implements Translator {
         this.counters = counters;
         this.apiLocation = LocationName.of(gcpInstance.project(), "global");
         this.thingDescCache = thingDescCache;
+        this.cachedLastQuery = new AtomicReference<>();
     }
 
     public ArtDescription translateFrom(Language language, ArtDescription description) {
         if (language == TARGET_LANG) {
             return description;
         }
-        Optional<ArtDescription> cached = Optional.ofNullable(cachedLastQuery)
+        Optional<ArtDescription> cached = Optional.ofNullable(cachedLastQuery.get())
                 .filter(c -> c.getKey().equals(description))
                 .map(SimpleImmutableEntry::getValue);
         if (cached.isPresent()) {
@@ -48,7 +50,7 @@ public class GcpTranslator implements Translator {
         ArtDescription translated = new ArtDescription(
                 translateFrom(language, description.artDesc()),
                 translateFromCached(language, description.thingDesc(), thingDescCache));
-        cachedLastQuery = new SimpleImmutableEntry<>(description, translated);
+        cachedLastQuery.set(new SimpleImmutableEntry<>(description, translated));
         return translated;
     }
 
