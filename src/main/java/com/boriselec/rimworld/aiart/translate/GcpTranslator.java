@@ -43,7 +43,7 @@ public class GcpTranslator implements Translator {
         if (language == TARGET_LANG) {
             return description;
         }
-        log.debug("Cached last rq: " + cachedLastQuery.get());
+        log.info("Cached last rq: " + cachedLastQuery.get());
         Optional<ArtDescription> cached = Optional.ofNullable(cachedLastQuery.get())
                 .filter(c -> c.getKey().equals(description))
                 .map(SimpleImmutableEntry::getValue);
