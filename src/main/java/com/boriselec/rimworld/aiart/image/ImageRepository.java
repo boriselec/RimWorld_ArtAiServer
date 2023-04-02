@@ -1,4 +1,4 @@
-package com.boriselec.rimworld.aiart;
+package com.boriselec.rimworld.aiart.image;
 
 import com.boriselec.rimworld.aiart.data.ArtDescription;
 import org.slf4j.Logger;
