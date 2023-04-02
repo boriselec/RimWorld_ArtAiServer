@@ -7,6 +7,8 @@ import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class GcpTranslator implements Translator {
     private static final Language TARGET_LANG = Language.ENGLISH;
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final TranslationServiceClient client;
     private final LocationName apiLocation;
     private final Counters counters;
@@ -40,6 +43,7 @@ public class GcpTranslator implements Translator {
         if (language == TARGET_LANG) {
             return description;
         }
+        log.debug("Cached last rq: " + cachedLastQuery.get());
         Optional<ArtDescription> cached = Optional.ofNullable(cachedLastQuery.get())
                 .filter(c -> c.getKey().equals(description))
                 .map(SimpleImmutableEntry::getValue);
@@ -66,7 +70,9 @@ public class GcpTranslator implements Translator {
         TranslateTextResponse response = client.translateText(request);
         counters.translatedChars().increment(description.length());
 
-        return response.getTranslations(0).getTranslatedText();
+        String translatedText = response.getTranslations(0).getTranslatedText();
+        log.info("Translated %s -> %s".formatted(description, translatedText));
+        return translatedText;
     }
 
     private String translateFromCached(Language language, String description, Map<String, String> cache) {
