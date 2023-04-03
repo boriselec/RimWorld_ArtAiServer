@@ -59,20 +59,28 @@ public class GcpTranslator implements Translator {
     }
 
     private String translateFrom(Language language, String description) {
-        TranslateTextRequest request =
-                TranslateTextRequest.newBuilder()
-                        .setParent(apiLocation.toString())
-                        .setMimeType("text/plain")
-                        .setSourceLanguageCode(language.getIso639Code())
-                        .setTargetLanguageCode(TARGET_LANG.getIso639Code())
-                        .addContents(description)
-                        .build();
-        TranslateTextResponse response = client.translateText(request);
-        counters.translatedChars().increment(description.length());
+        if (description.isEmpty()) {
+            return description;
+        }
+        try {
+            TranslateTextRequest request =
+                    TranslateTextRequest.newBuilder()
+                            .setParent(apiLocation.toString())
+                            .setMimeType("text/plain")
+                            .setSourceLanguageCode(language.getIso639Code())
+                            .setTargetLanguageCode(TARGET_LANG.getIso639Code())
+                            .addContents(description)
+                            .build();
+            TranslateTextResponse response = client.translateText(request);
+            counters.translatedChars().increment(description.length());
 
-        String translatedText = response.getTranslations(0).getTranslatedText();
-        log.info("Translated %s -> %s".formatted(description, translatedText));
-        return translatedText;
+            String translatedText = response.getTranslations(0).getTranslatedText();
+            log.info("Translated %s -> %s".formatted(description, translatedText));
+            return translatedText;
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            return description;
+        }
     }
 
     private String translateFromCached(Language language, String description, Map<String, String> cache) {
