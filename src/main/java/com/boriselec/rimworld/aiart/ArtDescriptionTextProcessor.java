@@ -4,6 +4,7 @@ import com.boriselec.rimworld.aiart.data.ArtDescription;
 
 public class ArtDescriptionTextProcessor {
     private static final String TALE_DATE_REGEX = " on [^ ]+ of (Aprimay|Jugust|Septober|Decembary)[^.]+.";
+    private static final String TALE_DATE_REGEX_RUSSIAN = " [^ ]+ (Мартомай|Июгуст|Сентоноябрь|Декавраль)[^.]+.";
     private static final String DRESSER_UNRELATED = "Placing more than one dresser near the same bed has no effect\\.";
     private static final String CRIB_UNRELATED = "A high quality crib will make a baby happy\\. Multiple cribs can be placed in a bedroom without turning it into a barracks\\.";
     // some modes adds info in <i> tags
@@ -21,6 +22,7 @@ public class ArtDescriptionTextProcessor {
 
     private static String process(String description) {
         return description.replaceAll(TALE_DATE_REGEX, ".")
+                .replaceAll(TALE_DATE_REGEX_RUSSIAN, ".")
                 .replaceAll(DRESSER_UNRELATED, "")
                 .replaceAll(CRIB_UNRELATED, "")
                 .replaceAll(ITALIC_TAG, "")
