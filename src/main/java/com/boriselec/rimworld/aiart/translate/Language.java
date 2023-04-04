@@ -48,7 +48,7 @@ public enum Language {
         return Arrays.stream(values())
                 .filter(l -> l.rimworldCode.equals(code))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported language"));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported language: " + code));
     }
 
     public String getIso639Code() {
