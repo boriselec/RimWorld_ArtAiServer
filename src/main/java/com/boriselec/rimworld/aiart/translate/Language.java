@@ -31,6 +31,7 @@ public enum Language {
     SWEDISH("Swedish (Svenska)", "sv"),
     TURKISH("Turkish (Türkçe)", "tr"),
     UKRAINIAN("Ukrainian (Українська)", "uk"),
+    VIETNAMESE("Vietnamese", "vi"),
     ;
 
     /**
