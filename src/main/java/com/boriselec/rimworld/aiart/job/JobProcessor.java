@@ -35,14 +35,18 @@ public class JobProcessor {
 
     @Scheduled(fixedDelay = 1000)
     public void process() throws Exception {
+        log.info("DBG: started");
         while (!queue.isEmpty()) {
+            log.info("DBG: not empty");
             Request request = queue.peek();
+            log.info("DBG: has rq");
             String englishDescription = prepare(request);
             log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
             try {
                 InputStream image = generatorClient.getImage(englishDescription);
                 String filePath = imageRepository.getFilePath(request.getArtDescription());
                 imageRepository.saveImage(image, filePath, englishDescription);
+                log.info("DBG: before remove");
                 //noinspection ResultOfMethodCallIgnored
                 queue.remove(request);
                 log.info("Queue size: " + queue.size());
@@ -50,7 +54,9 @@ public class JobProcessor {
                 log.warn(e.getMessage());
                 return;
             }
+            log.info("DBG: next");
         }
+        log.info("DBG: finished");
     }
 
     private String prepare(Request request) {
