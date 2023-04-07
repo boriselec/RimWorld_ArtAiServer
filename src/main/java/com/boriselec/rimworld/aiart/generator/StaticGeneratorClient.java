@@ -1,5 +1,6 @@
 package com.boriselec.rimworld.aiart.generator;
 
+import com.github.mizosoft.methanol.MoreBodySubscribers;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,8 @@ import java.net.http.HttpResponse.ResponseInfo;
 import java.time.Duration;
 
 public class StaticGeneratorClient implements GeneratorClient {
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String url;
     private final HttpClient httpClient;
@@ -34,7 +37,7 @@ public class StaticGeneratorClient implements GeneratorClient {
         log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
-                .timeout(Duration.ofSeconds(60))
+                .timeout(TIMEOUT)
                 .POST(HttpRequest.BodyPublishers.ofString(description))
                 .build();
         InputStream response = httpClient
@@ -56,6 +59,6 @@ public class StaticGeneratorClient implements GeneratorClient {
         if (!MediaType.IMAGE_PNG.toString().equals(contentType)) {
             throw new IllegalStateException("Content-type: " + contentType);
         }
-        return BodySubscribers.ofInputStream();
+        return MoreBodySubscribers.withReadTimeout(BodySubscribers.ofInputStream(), TIMEOUT);
     }
 }
