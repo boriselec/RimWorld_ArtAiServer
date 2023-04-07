@@ -39,8 +39,7 @@ public class JobProcessor {
             Request request = queue.peek();
             String englishDescription = prepare(request);
             log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
-            try {
-                InputStream image = generatorClient.getImage(englishDescription);
+            try (InputStream image = generatorClient.getImage(englishDescription)) {
                 String filePath = imageRepository.getFilePath(request.getArtDescription());
                 imageRepository.saveImage(image, filePath, englishDescription);
                 //noinspection ResultOfMethodCallIgnored
