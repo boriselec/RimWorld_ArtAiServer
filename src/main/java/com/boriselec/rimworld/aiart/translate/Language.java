@@ -25,6 +25,7 @@ public enum Language {
     PORTUGUESE_BRAZILIAN("PortugueseBrazilian (Português Brasileiro)", "pt"),
     ROMANIAN("Romanian (Română)", "ro"),
     RUSSIAN("Russian (Русский)", "ru"),
+    RUSSIAN_SK("Russian-SK", "ru"),
     SLOVAK("Slovak (Slovenčina)", "sk"),
     SPANISH("Spanish (Español(Castellano))", "es"),
     SPANISH_LATIN("SpanishLatin (Español(Latinoamérica))", "es"),
