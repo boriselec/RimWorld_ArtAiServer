@@ -61,7 +61,7 @@ public class ImageRepository {
                     writer.setOutput(output);
                     writer.write(image);
                 }
-                log.info("New image: " + filePath);
+                log.info("New image: %s: %s".formatted(descriptionMetadata, filePath));
             } finally {
                 Optional.ofNullable(reader).ifPresent(ImageReader::dispose);
                 Optional.ofNullable(writer).ifPresent(ImageWriter::dispose);
