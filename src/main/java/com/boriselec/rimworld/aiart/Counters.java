@@ -14,6 +14,7 @@ public record Counters(
         Counter queuePresent,
         Counter queueLimitOverall,
         Counter queueLimitUser,
+        Counter imageSaved,
         Counter translatedChars) {
     public Counters(MeterRegistry registry) {
         this(
@@ -24,6 +25,7 @@ public record Counters(
                 registry.counter("queue.present"),
                 registry.counter("queue.limit.overall"),
                 registry.counter("queue.limit.user"),
+                registry.counter("image.saved"),
                 registry.counter("translate.chars." + timestamp()));
     }
 
