@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
+import com.boriselec.rimworld.aiart.Counters;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.data.Request;
@@ -22,15 +23,18 @@ public class JobProcessor {
     private final ImageRepository imageRepository;
     private final GeneratorClient generatorClient;
     private final Translator translator;
+    private final Counters counters;
 
     public JobProcessor(LinkedBlockingDeque<Request> queue,
                         ImageRepository imageRepository,
                         GeneratorClient generatorClient,
-                        Translator translator) {
+                        Translator translator,
+                        Counters counters) {
         this.queue = queue;
         this.imageRepository = imageRepository;
         this.generatorClient = generatorClient;
         this.translator = translator;
+        this.counters = counters;
     }
 
     @Scheduled(fixedDelay = 1000)
@@ -42,6 +46,7 @@ public class JobProcessor {
             try (InputStream image = generatorClient.getImage(englishDescription)) {
                 String filePath = imageRepository.getFilePath(request.getArtDescription());
                 imageRepository.saveImage(image, filePath, englishDescription);
+                counters.imageSaved().increment();
                 //noinspection ResultOfMethodCallIgnored
                 queue.remove(request);
                 log.info("Queue size: " + queue.size());
