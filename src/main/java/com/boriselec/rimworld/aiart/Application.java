@@ -91,14 +91,18 @@ public class Application implements SchedulingConfigurer {
 
     @Bean
     @ConditionalOnProperty("generator.url")
-    public GeneratorClient staticGeneratorClient(@Value("${generator.url}") String url) {
-        return staticGeneratorClientPrototype(url);
+    public GeneratorClient staticGeneratorClient(
+            @Value("${generator.url}") String url,
+            @Value("${generator.timeout.seconds}") int timeoutSeconds) {
+        return staticGeneratorClientPrototype(url, timeoutSeconds);
     }
 
     @Bean(autowireCandidate = false)
     @Scope(SCOPE_PROTOTYPE)
-    public StaticGeneratorClient staticGeneratorClientPrototype(String url) {
-        return new StaticGeneratorClient(url);
+    public StaticGeneratorClient staticGeneratorClientPrototype(
+            String url,
+            @Value("${generator.timeout.seconds}") int timeoutSeconds) {
+        return new StaticGeneratorClient(url, timeoutSeconds);
     }
 
     @Bean
