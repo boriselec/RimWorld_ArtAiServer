@@ -1,6 +1,5 @@
 package com.boriselec.rimworld.aiart.image;
 
-import com.boriselec.rimworld.aiart.data.ArtDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +20,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class ImageRepository {
@@ -32,17 +30,22 @@ public class ImageRepository {
         this.imageFolder = imageFolder;
     }
 
-    public Optional<InputStream> getImage(ArtDescription desc) {
+    public Optional<InputStream> getImage(String filename) {
         try {
             return Optional.of(
                     new DataInputStream(
-                            new FileInputStream(getFilePath(desc))));
+                            new FileInputStream(getFilePath(filename))));
         } catch (FileNotFoundException e) {
             return Optional.empty();
         }
     }
 
-    public void saveImage(InputStream is, String filePath, String descriptionMetadata) throws IOException {
+    public boolean hasImage(String filename) {
+        return new File(getFilePath(filename))
+            .exists();
+    }
+
+    public void saveImage(InputStream is, String filename, String descriptionMetadata) throws IOException {
         try (ImageInputStream stream = ImageIO.createImageInputStream(is)) {
             ImageReader reader = null;
             ImageWriter writer = null;
@@ -57,6 +60,7 @@ public class ImageRepository {
                 image.getMetadata().mergeTree(IIOMetadataFormatImpl.standardMetadataFormatName, root);
 
                 writer = ImageIO.getImageWriter(reader);
+                String filePath = getFilePath(filename);
                 try (ImageOutputStream output = ImageIO.createImageOutputStream(new File(filePath))) {
                     writer.setOutput(output);
                     writer.write(image);
@@ -69,9 +73,8 @@ public class ImageRepository {
         }
     }
 
-    public String getFilePath(ArtDescription desc) {
-        String uniqueId = UUID.nameUUIDFromBytes(desc.toString().getBytes()).toString();
-        return imageFolder + uniqueId + ".png";
+    private String getFilePath(String filename) {
+        return imageFolder + filename + ".png";
     }
 
     private void appendMetadata(IIOMetadataNode root, String key, String value) {

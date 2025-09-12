@@ -46,8 +46,8 @@ public class JobProcessor {
                     log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
 
                     InputStream image = generatorClient.getImage(englishDescription);
-                    String filePath = imageRepository.getFilePath(request.getArtDescription());
-                    imageRepository.saveImage(image, filePath, englishDescription);
+                    String filename = request.getArtDescription().uid();
+                    imageRepository.saveImage(image, filename, englishDescription);
                     counters.imageSaved().increment();
                 } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
