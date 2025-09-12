@@ -20,14 +20,14 @@ import java.net.http.HttpResponse.ResponseInfo;
 import java.time.Duration;
 
 public class StaticGeneratorClient implements GeneratorClient {
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
-
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String url;
+    private final Duration timeout;
     private final HttpClient httpClient;
 
-    public StaticGeneratorClient(String url) {
+    public StaticGeneratorClient(String url, int timeoutSeconds) {
         this.url = url;
+        this.timeout = Duration.ofSeconds(timeoutSeconds);
         this.httpClient = HttpClient.newHttpClient();
     }
 
@@ -37,7 +37,7 @@ public class StaticGeneratorClient implements GeneratorClient {
         log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
-                .timeout(TIMEOUT)
+                .timeout(timeout)
                 .POST(HttpRequest.BodyPublishers.ofString(description))
                 .build();
         InputStream response = httpClient
@@ -59,6 +59,6 @@ public class StaticGeneratorClient implements GeneratorClient {
         if (!MediaType.IMAGE_PNG.toString().equals(contentType)) {
             throw new IllegalStateException("Content-type: " + contentType);
         }
-        return MoreBodySubscribers.withReadTimeout(BodySubscribers.ofInputStream(), TIMEOUT);
+        return MoreBodySubscribers.withReadTimeout(BodySubscribers.ofInputStream(), timeout);
     }
 }
