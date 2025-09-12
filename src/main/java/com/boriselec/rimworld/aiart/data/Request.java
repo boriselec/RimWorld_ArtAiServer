@@ -1,5 +1,6 @@
 package com.boriselec.rimworld.aiart.data;
 
+import com.boriselec.rimworld.aiart.AiArtControllerV2.PromptRq;
 import com.boriselec.rimworld.aiart.translate.Language;
 
 public record Request(String artDesc, String thingDesc, Language language) {
@@ -14,6 +15,17 @@ public record Request(String artDesc, String thingDesc, Language language) {
                 : Language.ENGLISH;
 
         return new RequestWithUserId(userId, new Request(artDesc, thingDesc, language));
+    }
+
+    public static RequestWithUserId deserializeV2(PromptRq rq) {
+        PromptRq.PromptRqData rqData = rq.artAi();
+        Language language = Language.fromRimworldCode(rqData.language());
+        return new RequestWithUserId(
+            rqData.userId(),
+            new Request(
+                rqData.artDescription(),
+                rqData.thingDescription(),
+                language));
     }
 
     public ArtDescription getArtDescription() {
