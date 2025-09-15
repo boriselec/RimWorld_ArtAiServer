@@ -6,7 +6,6 @@ import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
-import com.boriselec.rimworld.aiart.generator.GeneratorNotReadyException;
 import com.boriselec.rimworld.aiart.translate.Translator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,17 +42,14 @@ public class JobProcessor {
             Request request = queue.peek();
             String englishDescription = prepare(request);
             log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
-            try (InputStream image = generatorClient.getImage(englishDescription)) {
-                String filePath = imageRepository.getFilePath(request.getArtDescription());
-                imageRepository.saveImage(image, filePath, englishDescription);
-                counters.imageSaved().increment();
-                //noinspection ResultOfMethodCallIgnored
-                queue.remove(request);
-                log.info("Queue size: " + queue.size());
-            } catch (GeneratorNotReadyException e) {
-                log.warn(e.getMessage());
-                return;
-            }
+
+            InputStream image = generatorClient.getImage(englishDescription);
+            String filePath = imageRepository.getFilePath(request.getArtDescription());
+            imageRepository.saveImage(image, filePath, englishDescription);
+            counters.imageSaved().increment();
+            //noinspection ResultOfMethodCallIgnored
+            queue.remove(request);
+            log.info("Queue size: " + queue.size());
         }
     }
 
