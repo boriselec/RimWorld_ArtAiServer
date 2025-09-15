@@ -3,9 +3,6 @@ package com.boriselec.rimworld.aiart;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
 public record Counters(
         Counter rsImage,
         Counter rsQueued,
@@ -14,8 +11,7 @@ public record Counters(
         Counter queuePresent,
         Counter queueLimitOverall,
         Counter queueLimitUser,
-        Counter imageSaved,
-        Counter translatedChars) {
+        Counter imageSaved) {
     public Counters(MeterRegistry registry) {
         this(
                 registry.counter("rs.image"),
@@ -25,11 +21,6 @@ public record Counters(
                 registry.counter("queue.present"),
                 registry.counter("queue.limit.overall"),
                 registry.counter("queue.limit.user"),
-                registry.counter("image.saved"),
-                registry.counter("translate.chars." + timestamp()));
-    }
-
-    private static String timestamp() {
-        return ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+                registry.counter("image.saved"));
     }
 }
