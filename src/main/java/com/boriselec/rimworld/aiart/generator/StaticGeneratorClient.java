@@ -25,9 +25,9 @@ public class StaticGeneratorClient implements GeneratorClient {
     private final Duration timeout;
     private final HttpClient httpClient;
 
-    public StaticGeneratorClient(String url, int timeoutSeconds) {
+    public StaticGeneratorClient(String url, Duration timeout) {
         this.url = url;
-        this.timeout = Duration.ofSeconds(timeoutSeconds);
+        this.timeout = timeout;
         this.httpClient = HttpClient.newHttpClient();
     }
 

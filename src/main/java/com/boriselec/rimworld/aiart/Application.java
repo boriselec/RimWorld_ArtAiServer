@@ -28,6 +28,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -93,16 +94,16 @@ public class Application implements SchedulingConfigurer {
     @ConditionalOnProperty("generator.url")
     public GeneratorClient staticGeneratorClient(
             @Value("${generator.url}") String url,
-            @Value("${generator.timeout.seconds}") int timeoutSeconds) {
-        return staticGeneratorClientPrototype(url, timeoutSeconds);
+            @Value("${generator.timeout}") Duration timeout) {
+        return staticGeneratorClientPrototype(url, timeout);
     }
 
     @Bean(autowireCandidate = false)
     @Scope(SCOPE_PROTOTYPE)
     public StaticGeneratorClient staticGeneratorClientPrototype(
             String url,
-            @Value("${generator.timeout.seconds}") int timeoutSeconds) {
-        return new StaticGeneratorClient(url, timeoutSeconds);
+            @Value("${generator.timeout}") Duration timeout) {
+        return new StaticGeneratorClient(url, timeout);
     }
 
     @Bean
