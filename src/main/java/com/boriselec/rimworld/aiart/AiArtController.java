@@ -46,6 +46,7 @@ public class AiArtController {
                     "\n\nQueued: " + position;
             counters.rsQueued().increment();
         } catch (QueueLimitException e) {
+            log.info(e.getMessage());
             response = e.getMessage() + ". Try later.";
             counters.rsLimit().increment();
         }
