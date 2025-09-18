@@ -2,8 +2,8 @@ package com.boriselec.rimworld.aiart.data;
 
 import com.boriselec.rimworld.aiart.translate.Language;
 
-public record Request(String artDesc, String thingDesc, String userId, Language language) {
-    public static Request deserialize(String data) {
+public record Request(String artDesc, String thingDesc, Language language) {
+    public static RequestWithUserId deserialize(String data) {
         String[] split = data.split(";");
 
         String artDesc = split[0];
@@ -13,7 +13,7 @@ public record Request(String artDesc, String thingDesc, String userId, Language 
                 ? Language.fromRimworldCode(split[3])
                 : Language.ENGLISH;
 
-        return new Request(artDesc, thingDesc, userId, language);
+        return new RequestWithUserId(userId, new Request(artDesc, thingDesc, language));
     }
 
     public ArtDescription getArtDescription() {

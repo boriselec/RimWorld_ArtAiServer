@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.Request;
+import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
@@ -32,16 +33,16 @@ public class AiArtController {
     @PostMapping("/generate")
     public ResponseEntity<?> generate(@RequestBody String postData) {
         log.info("Received /generate: " + postData);
-        Request rq = Request.deserialize(postData);
-        return imageRepository.getImage(rq.getArtDescription())
+        var rq = Request.deserialize(postData);
+        return imageRepository.getImage(rq.value().getArtDescription())
                 .map(this::getImageResponse)
                 .orElseGet(() -> process(rq));
     }
 
-    private ResponseEntity<InputStreamResource> process(Request rq) {
+    private ResponseEntity<InputStreamResource> process(RequestWithUserId rq) {
         String response;
         try {
-            int position = jobQueue.putIfNotPresent(rq);
+            int position = jobQueue.putIfNotPresent(rq.userId(), rq.value());
             response = "Image is generating... Please wait" +
                     "\n\nQueued: " + position;
             counters.rsQueued().increment();

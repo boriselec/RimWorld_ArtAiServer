@@ -27,13 +27,6 @@ public class Application implements SchedulingConfigurer {
         SpringApplication.run(Application.class, args);
     }
 
-    @Bean
-    public LinkedBlockingDeque<Request> linkedBlockingQueue(MeterRegistry meterRegistry,
-                                                            @Value("${queue.size.max}") int queueMaxSize) {
-        var queue = new LinkedBlockingDeque<Request>(queueMaxSize);
-        return meterRegistry.gauge("queue.size", queue, LinkedBlockingDeque::size);
-    }
-
     // TODO: llm translator
     @Bean
     @ConditionalOnMissingBean(Translator.class)
