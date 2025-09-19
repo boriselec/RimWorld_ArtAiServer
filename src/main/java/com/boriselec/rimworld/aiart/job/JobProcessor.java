@@ -49,9 +49,7 @@ public class JobProcessor {
                     String filePath = imageRepository.getFilePath(request.getArtDescription());
                     imageRepository.saveImage(image, filePath, englishDescription);
                     counters.imageSaved().increment();
-                    log.info(queue.toString());
                 } catch (IOException | InterruptedException | URISyntaxException e) {
-                    log.info(queue.toString());
                     throw new RuntimeException(e);
                 }
             });
