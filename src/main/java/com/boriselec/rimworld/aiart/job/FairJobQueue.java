@@ -65,6 +65,7 @@ public class FairJobQueue implements JobQueue {
                 userRing.offer(userId);
             }
         } finally {
+            log.info(toString());
             lock.unlock();
         }
         return index(userId, request);
@@ -125,6 +126,7 @@ public class FairJobQueue implements JobQueue {
                     }
                 }
             } finally {
+                log.info(toString());
                 lock.unlock();
             }
         } else {
