@@ -45,7 +45,8 @@ public class JobProcessor {
 
                     InputStream image = generatorClient.getImage(processedPrompt);
                     String prompt = request.prompt();
-                    imageRepository.saveImage(image, prompt, processedPrompt);
+                    String filename = imageRepository.getPromptUid(prompt);
+                    imageRepository.saveImage(image, filename, processedPrompt);
                     counters.imageSaved().increment();
                 } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);

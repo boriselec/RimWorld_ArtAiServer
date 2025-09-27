@@ -31,10 +31,8 @@ public class ImageRepository {
         this.imageFolder = imageFolder;
     }
 
-    @Deprecated
-    public Optional<InputStream> getImageByPrompt(String prompt) {
-        String filename = UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
-        return getImage(filename);
+    public String getPromptUid(String prompt) {
+        return UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
     }
 
     public Optional<InputStream> getImage(String filename) {
@@ -52,10 +50,9 @@ public class ImageRepository {
             .exists();
     }
 
-    public void saveImage(InputStream is, String prompt, String processedPrompt)
+    public void saveImage(InputStream is, String filename, String processedPrompt)
         throws IOException {
 
-        String filename = UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
         try (ImageInputStream stream = ImageIO.createImageInputStream(is)) {
             ImageReader reader = null;
             ImageWriter writer = null;
