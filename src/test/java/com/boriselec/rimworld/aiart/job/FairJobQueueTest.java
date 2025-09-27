@@ -264,4 +264,14 @@ class FairJobQueueTest {
         assertEquals(1, jobQueue.size());
         assertEquals(0, pos);
     }
+
+    @Test
+    void testIndexByRqUid() {
+        Request request = new Request("prompt", Language.ENGLISH);
+        int pos = jobQueue.putIfNotPresent("rqUid", "user", request);
+
+        assertEquals(0, pos);
+        assertEquals(0, jobQueue.index("user", request).orElseThrow());
+        assertEquals(0, jobQueue.index("rqUid").orElseThrow());
+    }
 }
