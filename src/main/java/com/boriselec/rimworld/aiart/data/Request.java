@@ -11,8 +11,8 @@ public record Request(String artDesc, String thingDesc, Language language) {
         String thingDesc = split[1];
         String userId = split[2];
         Language language = split.length > 3
-                ? Language.fromRimworldCode(split[3])
-                : Language.ENGLISH;
+            ? Language.fromRimworldCode(split[3])
+            : Language.ENGLISH;
 
         return new RequestWithUserId(userId, new Request(artDesc, thingDesc, language));
     }

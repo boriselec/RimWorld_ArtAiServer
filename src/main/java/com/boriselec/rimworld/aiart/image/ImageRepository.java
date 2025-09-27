@@ -33,8 +33,8 @@ public class ImageRepository {
     public Optional<InputStream> getImage(String filename) {
         try {
             return Optional.of(
-                    new DataInputStream(
-                            new FileInputStream(getFilePath(filename))));
+                new DataInputStream(
+                    new FileInputStream(getFilePath(filename))));
         } catch (FileNotFoundException e) {
             return Optional.empty();
         }
@@ -45,7 +45,9 @@ public class ImageRepository {
             .exists();
     }
 
-    public void saveImage(InputStream is, String filename, String descriptionMetadata) throws IOException {
+    public void saveImage(InputStream is, String filename, String descriptionMetadata)
+        throws IOException {
+
         try (ImageInputStream stream = ImageIO.createImageInputStream(is)) {
             ImageReader reader = null;
             ImageWriter writer = null;
@@ -54,14 +56,17 @@ public class ImageRepository {
                 reader.setInput(stream, true, true);
                 IIOImage image = reader.readAll(0, null);
 
-                IIOMetadataNode root = new IIOMetadataNode(IIOMetadataFormatImpl.standardMetadataFormatName);
+                IIOMetadataNode root = new IIOMetadataNode(
+                    IIOMetadataFormatImpl.standardMetadataFormatName);
                 appendMetadata(root, "Software", "boriselec.com");
                 appendMetadata(root, "Description", descriptionMetadata);
-                image.getMetadata().mergeTree(IIOMetadataFormatImpl.standardMetadataFormatName, root);
+                image.getMetadata().mergeTree(
+                    IIOMetadataFormatImpl.standardMetadataFormatName, root);
 
                 writer = ImageIO.getImageWriter(reader);
                 String filePath = getFilePath(filename);
-                try (ImageOutputStream output = ImageIO.createImageOutputStream(new File(filePath))) {
+                File file = new File(filePath);
+                try (ImageOutputStream output = ImageIO.createImageOutputStream(file)) {
                     writer.setOutput(output);
                     writer.write(image);
                 }
@@ -84,7 +89,7 @@ public class ImageRepository {
 
         IIOMetadataNode text = new IIOMetadataNode("Text");
         text.appendChild(textEntry);
-        
+
         root.appendChild(text);
     }
 }

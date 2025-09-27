@@ -38,19 +38,19 @@ public class ImageFolderLimiter {
 
     private long deleteOldBatch() throws IOException {
         return Files.walk(folder)
-                .map(Path::toFile)
-                .filter(File::isFile)
-                .sorted(Comparator.comparing(File::lastModified))
-                .limit(DELETE_BATCH_SIZE)
-                .map(File::delete)
-                .count();
+            .map(Path::toFile)
+            .filter(File::isFile)
+            .sorted(Comparator.comparing(File::lastModified))
+            .limit(DELETE_BATCH_SIZE)
+            .map(File::delete)
+            .count();
     }
 
     private boolean isExceedSizeLimit() throws IOException {
         return Files.walk(folder)
-                .map(Path::toFile)
-                .filter(File::isFile)
-                .mapToLong(File::length)
-                .sum() > folderMaxSize;
+            .map(Path::toFile)
+            .filter(File::isFile)
+            .mapToLong(File::length)
+            .sum() > folderMaxSize;
     }
 }

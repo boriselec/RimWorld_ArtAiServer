@@ -16,21 +16,21 @@ public class ArtDescriptionTextProcessor {
 
     public static ArtDescription process(ArtDescription description) {
         return new ArtDescription(
-                process(description.artDesc()),
-                process(description.thingDesc()));
+            process(description.artDesc()),
+            process(description.thingDesc()));
     }
 
     private static String process(String description) {
         return description.replaceAll(TALE_DATE_REGEX, ".")
-                .replaceAll(TALE_DATE_REGEX_RUSSIAN, ".")
-                .replaceAll(DRESSER_UNRELATED, "")
-                .replaceAll(CRIB_UNRELATED, "")
-                .replaceAll(ITALIC_TAG, "")
-                .replaceAll(COLOUR_TAG, "")
-                .replaceAll(TALENT, "")
-                .replaceAll(VANILLA_EXPANDED, "")
-                .replaceAll("\\n", "")
-                .replaceAll("  +", " ")
-                .trim();
+            .replaceAll(TALE_DATE_REGEX_RUSSIAN, ".")
+            .replaceAll(DRESSER_UNRELATED, "")
+            .replaceAll(CRIB_UNRELATED, "")
+            .replaceAll(ITALIC_TAG, "")
+            .replaceAll(COLOUR_TAG, "")
+            .replaceAll(TALENT, "")
+            .replaceAll(VANILLA_EXPANDED, "")
+            .replaceAll("\\n", "")
+            .replaceAll("  +", " ")
+            .trim();
     }
 }

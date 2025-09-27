@@ -1,6 +1,5 @@
 package com.boriselec.rimworld.aiart.generator;
 
-import com.github.mizosoft.methanol.MoreBodySubscribers;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,8 @@ import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.HttpResponse.ResponseInfo;
 import java.time.Duration;
 
+import static com.github.mizosoft.methanol.MoreBodySubscribers.withReadTimeout;
+
 public class StaticGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String url;
@@ -33,16 +34,17 @@ public class StaticGeneratorClient implements GeneratorClient {
 
     @Override
     @Timed("generation.time")
-    public InputStream getImage(String description) throws IOException, InterruptedException, URISyntaxException {
+    public InputStream getImage(String description)
+        throws IOException, InterruptedException, URISyntaxException {
         log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
-                .timeout(timeout)
-                .POST(HttpRequest.BodyPublishers.ofString(description))
-                .build();
+            .timeout(timeout)
+            .POST(HttpRequest.BodyPublishers.ofString(description))
+            .build();
         InputStream response = httpClient
-                .send(request, this::processResponse)
-                .body();
+            .send(request, this::processResponse)
+            .body();
 
         log.info("Getting image: DONE");
         return response;
@@ -54,11 +56,11 @@ public class StaticGeneratorClient implements GeneratorClient {
             throw new IllegalStateException("HTTP code: " + statusCode);
         }
         String contentType = responseInfo.headers()
-                .firstValue(HttpHeaders.CONTENT_TYPE)
-                .orElse(null);
+            .firstValue(HttpHeaders.CONTENT_TYPE)
+            .orElse(null);
         if (!MediaType.IMAGE_PNG.toString().equals(contentType)) {
             throw new IllegalStateException("Content-type: " + contentType);
         }
-        return MoreBodySubscribers.withReadTimeout(BodySubscribers.ofInputStream(), timeout);
+        return withReadTimeout(BodySubscribers.ofInputStream(), timeout);
     }
 }

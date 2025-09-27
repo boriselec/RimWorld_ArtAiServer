@@ -24,9 +24,8 @@ public class FairJobQueue implements JobQueue {
     private final LinkedList<String> userRing;
     private final ReentrantLock lock;
 
-    public FairJobQueue(
-            @Value("${limit.users}") int maxUsers,
-            @Value("${limit.requestsByUser}") int maxRequestsByUser) {
+    public FairJobQueue(@Value("${limit.users}") int maxUsers,
+                        @Value("${limit.requestsByUser}") int maxRequestsByUser) {
         this.maxUsers = maxUsers;
         this.maxRequestsByUser = maxRequestsByUser;
 
@@ -42,7 +41,8 @@ public class FairJobQueue implements JobQueue {
     public int putIfNotPresent(String userId, Request request) {
         lock.lock();
         try {
-            Queue<Request> userQueue = userQueues.computeIfAbsent(userId, k -> new LinkedList<>());
+            Queue<Request> userQueue = userQueues.computeIfAbsent(
+                userId, k -> new LinkedList<>());
 
             // Check if request already exists
             if (userQueue.contains(request)) {
@@ -72,7 +72,8 @@ public class FairJobQueue implements JobQueue {
     }
 
     /**
-     * Get request from queue in round-robin fashion, process it, if no error - delete from queue
+     * Get request from queue in round-robin fashion, process it,
+     * if no error - delete from queue
      */
     @Override
     public void processNext(Consumer<Request> consumer) {
@@ -111,7 +112,8 @@ public class FairJobQueue implements JobQueue {
             try {
                 Queue<Request> userQueue = userQueues.get(currentUserId);
                 if (userQueue != null && !userQueue.isEmpty()) {
-                    // Verify this is still the same request (in case of concurrent modifications)
+                    // Verify this is still the same request
+                    // (in case of concurrent modifications)
                     Request headRequest = userQueue.peek();
                     if (request.equals(headRequest)) {
                         userQueue.poll(); // Remove the processed request
@@ -119,7 +121,8 @@ public class FairJobQueue implements JobQueue {
                         // Update ring position
                         userRing.pollFirst(); // Remove user from front
                         if (!userQueue.isEmpty()) {
-                            userRing.offerLast(currentUserId); // Add back to end if more requests
+                            // Add back to end if more requests
+                            userRing.offerLast(currentUserId);
                         }
                     } else {
                         log.error("Unexpected state: request changed");
@@ -149,8 +152,8 @@ public class FairJobQueue implements JobQueue {
         lock.lock();
         try {
             return userQueues.values().stream()
-                    .mapToInt(Queue::size)
-                    .sum();
+                .mapToInt(Queue::size)
+                .sum();
         } finally {
             lock.unlock();
         }
@@ -244,8 +247,8 @@ public class FairJobQueue implements JobQueue {
     @Override
     public String toString() {
         return "JobQueue{" +
-                "size=" + size() +
-                ", userRingSize=" + userRing.size() +
-                '}';
+            "size=" + size() +
+            ", userRingSize=" + userRing.size() +
+            '}';
     }
 }
