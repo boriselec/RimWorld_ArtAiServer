@@ -24,7 +24,8 @@ public class AiArtController {
     private final JobQueue jobQueue;
     private final Counters counters;
 
-    public AiArtController(ImageRepository imageRepository, JobQueue jobQueue, Counters counters) {
+    public AiArtController(ImageRepository imageRepository, JobQueue jobQueue,
+                           Counters counters) {
         this.imageRepository = imageRepository;
         this.jobQueue = jobQueue;
         this.counters = counters;
@@ -35,8 +36,8 @@ public class AiArtController {
         log.info("Received /generate: " + postData);
         var rq = Request.deserialize(postData);
         return imageRepository.getImage(rq.value().getArtDescription().uid())
-                .map(this::getImageResponse)
-                .orElseGet(() -> process(rq));
+            .map(this::getImageResponse)
+            .orElseGet(() -> process(rq));
     }
 
     private ResponseEntity<InputStreamResource> process(RequestWithUserId rq) {
@@ -44,7 +45,7 @@ public class AiArtController {
         try {
             int position = jobQueue.putIfNotPresent(rq.userId(), rq.value());
             response = "Image is generating... Please wait" +
-                    "\n\nQueued: " + position;
+                "\n\nQueued: " + position;
             counters.rsQueued().increment();
         } catch (QueueLimitException e) {
             log.info(e.getMessage());
@@ -57,13 +58,14 @@ public class AiArtController {
     private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
         counters.rsImage().increment();
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .body(new InputStreamResource(is));
+            .contentType(MediaType.IMAGE_PNG)
+            .body(new InputStreamResource(is));
     }
 
     private ResponseEntity<InputStreamResource> getInProgressResponse(String response) {
         return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(new InputStreamResource(new ByteArrayInputStream(response.getBytes())));
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(new InputStreamResource(
+                new ByteArrayInputStream(response.getBytes())));
     }
 }

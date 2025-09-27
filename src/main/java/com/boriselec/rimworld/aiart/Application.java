@@ -1,6 +1,5 @@
 package com.boriselec.rimworld.aiart;
 
-import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.StaticGeneratorClient;
 import com.boriselec.rimworld.aiart.translate.Translator;
@@ -18,7 +17,6 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
 
 @SpringBootApplication
 @EnableScheduling
@@ -36,8 +34,8 @@ public class Application implements SchedulingConfigurer {
 
     @Bean
     public GeneratorClient staticGeneratorClient(
-            @Value("${generator.url}") String url,
-            @Value("${generator.timeout}") Duration timeout) {
+        @Value("${generator.url}") String url,
+        @Value("${generator.timeout}") Duration timeout) {
         return new StaticGeneratorClient(url, timeout);
     }
 

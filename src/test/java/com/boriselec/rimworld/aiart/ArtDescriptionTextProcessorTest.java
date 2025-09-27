@@ -1,8 +1,9 @@
 package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.ArtDescription;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ArtDescriptionTextProcessorTest {
     @Test
@@ -13,10 +14,10 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "This representation tells the story of Mayrén completing work on a machine pistol.",
-                        "A torso-sized piece of material sculpted into an artistic form."),
-                description);
+        assertEquals(new ArtDescription(
+                "This representation tells the story of Mayrén completing work on a machine pistol.",
+                "A torso-sized piece of material sculpted into an artistic form."),
+            description);
     }
 
     @Test
@@ -27,10 +28,10 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "Резьба на этом предмете изображает, как возводится буровая установка удивительной красоты. Изображение этого творения рук человеческих поражает своей детализацией. Картину окаймляет тройка изображений. На них— ворон. Каким-то образом изображению удаётся одновременно передать и идею уныния, и идею бога. Эта работа относится к тому, как Мисси заканчивает строить буровая установка.",
-                        "Уютный матрац и простыни на прочной раме, для комфортного отдыха."),
-                description);
+        assertEquals(new ArtDescription(
+                "Резьба на этом предмете изображает, как возводится буровая установка удивительной красоты. Изображение этого творения рук человеческих поражает своей детализацией. Картину окаймляет тройка изображений. На них— ворон. Каким-то образом изображению удаётся одновременно передать и идею уныния, и идею бога. Эта работа относится к тому, как Мисси заканчивает строить буровая установка.",
+                "Уютный матрац и простыни на прочной раме, для комфортного отдыха."),
+            description);
     }
 
     @Test
@@ -41,7 +42,7 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription("test.", "test."), description);
+        assertEquals(new ArtDescription("test.", "test."), description);
     }
 
     @Test
@@ -52,7 +53,7 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription("test.", "test. test."), description);
+        assertEquals(new ArtDescription("test.", "test. test."), description);
     }
 
     @Test
@@ -63,10 +64,10 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "This sculpture shows Lada Ballard trying to light a fire and shivering uncontrollably. A cold blue moon looms in the background.",
-                        "A small-size piece of material on a decorative pedestal, sculpted into an artistic form."),
-                description);
+        assertEquals(new ArtDescription(
+                "This sculpture shows Lada Ballard trying to light a fire and shivering uncontrollably. A cold blue moon looms in the background.",
+                "A small-size piece of material on a decorative pedestal, sculpted into an artistic form."),
+            description);
     }
 
     @Test
@@ -77,10 +78,10 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "An engraving on this furniture is shaped like Barry Wollertsen cupping Caraleigh Tuzii's chin with a sense of tenderness. Caraleigh shyly covers Barry's eyes. The work symbolizes debt. Provocatively, three shamans appear in the distance. This image relates to Barry's kiss with Caraleigh.",
-                        "A dresser. Gives a small comfort bonus to all nearby beds."),
-                description);
+        assertEquals(new ArtDescription(
+                "An engraving on this furniture is shaped like Barry Wollertsen cupping Caraleigh Tuzii's chin with a sense of tenderness. Caraleigh shyly covers Barry's eyes. The work symbolizes debt. Provocatively, three shamans appear in the distance. This image relates to Barry's kiss with Caraleigh.",
+                "A dresser. Gives a small comfort bonus to all nearby beds."),
+            description);
     }
 
     @Test
@@ -91,10 +92,10 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "bloodlust cannibal asexual woman Trained Ghoul light-skinned with shoulder-length blond hair in blue clothes age 25",
-                        "beautiful portrait of a human"),
-                description);
+        assertEquals(new ArtDescription(
+                "bloodlust cannibal asexual woman Trained Ghoul light-skinned with shoulder-length blond hair in blue clothes age 25",
+                "beautiful portrait of a human"),
+            description);
     }
 
     @Test
@@ -105,9 +106,9 @@ class ArtDescriptionTextProcessorTest {
 
         ArtDescription description = ArtDescriptionTextProcessor.process(request);
 
-        Assertions.assertEquals(new ArtDescription(
-                        "thin lazy Priest Chef male crashbaby dark-skinned with shoulder-length brunette hair clean-shaven in teal clothes age 18",
-                        "beautiful portrait of a human"),
-                description);
+        assertEquals(new ArtDescription(
+                "thin lazy Priest Chef male crashbaby dark-skinned with shoulder-length brunette hair clean-shaven in teal clothes age 18",
+                "beautiful portrait of a human"),
+            description);
     }
 }

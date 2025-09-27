@@ -4,7 +4,7 @@ services:
   server:
     image: ghcr.io/boriselec/rimworld_artaiserver:main
     container_name: server
-    ports: 
+    ports:
       - "8080:8080"
     volumes:
       - "./images:/mnt/images"
@@ -20,4 +20,4 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
+              capabilities: [ gpu ]

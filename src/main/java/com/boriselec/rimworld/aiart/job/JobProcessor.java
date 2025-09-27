@@ -25,10 +25,8 @@ public class JobProcessor {
     private final Translator translator;
     private final Counters counters;
 
-    public JobProcessor(JobQueue queue,
-                        ImageRepository imageRepository,
-                        GeneratorClient generatorClient,
-                        Translator translator,
+    public JobProcessor(JobQueue queue, ImageRepository imageRepository,
+                        GeneratorClient generatorClient, Translator translator,
                         Counters counters) {
         this.queue = queue;
         this.imageRepository = imageRepository;
@@ -43,7 +41,8 @@ public class JobProcessor {
             queue.processNext(request -> {
                 try {
                     String englishDescription = prepare(request);
-                    log.info("Prepared description (%s): %s".formatted(request.language(), englishDescription));
+                    log.info("Prepared description (%s): %s".formatted(
+                        request.language(), englishDescription));
 
                     InputStream image = generatorClient.getImage(englishDescription);
                     String filename = request.getArtDescription().uid();
@@ -59,7 +58,9 @@ public class JobProcessor {
     private String prepare(Request request) {
         ArtDescription originalDesc = request.getArtDescription();
         ArtDescription preparedDesc = ArtDescriptionTextProcessor.process(originalDesc);
-        ArtDescription englishDesc = translator.translateFrom(request.language(), preparedDesc);
+        ArtDescription englishDesc = translator.translateFrom(
+            request.language(),
+            preparedDesc);
         return englishDesc.toString();
     }
 }
