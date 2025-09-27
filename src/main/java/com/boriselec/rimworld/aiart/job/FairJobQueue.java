@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.data.Request;
+import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,10 +9,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
 
 @Component
 public class FairJobQueue implements JobQueue {
@@ -23,6 +28,7 @@ public class FairJobQueue implements JobQueue {
     private final Map<String, Queue<Request>> userQueues;
     private final LinkedList<String> userRing;
     private final ReentrantLock lock;
+    private final Map<String, RequestWithUserId> rqByUid;
 
     public FairJobQueue(@Value("${limit.users}") int maxUsers,
                         @Value("${limit.requestsByUser}") int maxRequestsByUser) {
@@ -32,13 +38,14 @@ public class FairJobQueue implements JobQueue {
         userQueues = new ConcurrentHashMap<>();
         userRing = new LinkedList<>();
         lock = new ReentrantLock();
+        rqByUid = new ConcurrentHashMap<>();
     }
 
     /**
      * @return position in queue (started with 0)
      */
     @Override
-    public int putIfNotPresent(String userId, Request request) {
+    public int putIfNotPresent(String rqUid, String userId, Request request) {
         lock.lock();
         try {
             Queue<Request> userQueue = userQueues.computeIfAbsent(
@@ -46,7 +53,8 @@ public class FairJobQueue implements JobQueue {
 
             // Check if request already exists
             if (userQueue.contains(request)) {
-                return index(userId, request);
+                return index(userId, request)
+                    .orElseThrow();
             }
 
             // Check user limit
@@ -56,6 +64,7 @@ public class FairJobQueue implements JobQueue {
 
             boolean wasEmpty = userQueue.isEmpty();
             userQueue.offer(request);
+            rqByUid.put(rqUid, new RequestWithUserId(userId, request));
 
             // Add user to ring if they weren't in it (had empty queue)
             if (wasEmpty && !userRing.contains(userId)) {
@@ -68,7 +77,8 @@ public class FairJobQueue implements JobQueue {
             log.info(toString());
             lock.unlock();
         }
-        return index(userId, request);
+        return index(userId, request)
+            .orElseThrow();
     }
 
     /**
@@ -135,6 +145,10 @@ public class FairJobQueue implements JobQueue {
         } else {
             log.error("Unexpected state: request is null");
         }
+        
+        if (isEmpty()) {
+            rqByUid.clear();
+        }
     }
 
     @Override
@@ -159,6 +173,12 @@ public class FairJobQueue implements JobQueue {
         }
     }
 
+    @Override
+    public Optional<Integer> index(String rqUid) {
+        return ofNullable(rqByUid.get(rqUid))
+            .flatMap(rq -> index(rq.userId(), rq.value()));
+    }
+
     /**
      * Returns how many processing steps until the given request will be processed
      *
@@ -167,17 +187,17 @@ public class FairJobQueue implements JobQueue {
      * @return number of processing steps before this request, or -1 if not found
      */
     @Override
-    public int index(String userId, Request request) {
+    public Optional<Integer> index(String userId, Request request) {
         lock.lock();
         try {
             if (userRing.isEmpty()) {
-                return -1;
+                return empty();
             }
 
             // First, check if the request exists in the user's queue
             Queue<Request> targetUserQueue = userQueues.get(userId);
             if (targetUserQueue == null || targetUserQueue.isEmpty()) {
-                return -1;
+                return empty();
             }
 
             // Find position of request within user's queue
@@ -192,7 +212,7 @@ public class FairJobQueue implements JobQueue {
             }
 
             if (positionInUserQueue == -1) {
-                return -1; // Request not found in user's queue
+                return empty(); // Request not found in user's queue
             }
 
             // Find user's position in the ring
@@ -207,7 +227,8 @@ public class FairJobQueue implements JobQueue {
             }
 
             if (userPositionInRing == -1) {
-                return -1; // User not in ring (shouldn't happen if queue is not empty)
+                // User not in ring (shouldn't happen if queue is not empty)
+                return empty();
             }
 
             int steps = 0;
@@ -237,7 +258,7 @@ public class FairJobQueue implements JobQueue {
                 userIndex++;
             }
 
-            return steps;
+            return Optional.of(steps);
 
         } finally {
             lock.unlock();

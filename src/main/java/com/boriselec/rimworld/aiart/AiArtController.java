@@ -43,7 +43,7 @@ public class AiArtController {
     private ResponseEntity<InputStreamResource> process(RequestWithUserId rq) {
         String response;
         try {
-            int position = jobQueue.putIfNotPresent(rq.userId(), rq.value());
+            int position = jobQueue.putIfNotPresent("", rq.userId(), rq.value());
             response = "Image is generating... Please wait" +
                 "\n\nQueued: " + position;
             counters.rsQueued().increment();

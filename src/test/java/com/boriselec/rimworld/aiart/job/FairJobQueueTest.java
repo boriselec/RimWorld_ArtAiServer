@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Optional.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,7 +32,7 @@ class FairJobQueueTest {
 
     @Test
     void testPutIfNotPresent_SingleUser() {
-        int position = jobQueue.putIfNotPresent("user1", request1);
+        int position = jobQueue.putIfNotPresent("rqUid1", "user1", request1);
 
         assertEquals(0, position);
         assertEquals(1, jobQueue.size());
@@ -40,8 +41,8 @@ class FairJobQueueTest {
 
     @Test
     void testPutIfNotPresent_MultipleRequests() {
-        jobQueue.putIfNotPresent("user1", request1);
-        int position = jobQueue.putIfNotPresent("user1", request2);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        int position = jobQueue.putIfNotPresent("rqUid2", "user1", request2);
 
         assertEquals(1, position);
         assertEquals(2, jobQueue.size());
@@ -49,29 +50,27 @@ class FairJobQueueTest {
 
     @Test
     void testPutIfNotPresent_ExceedsRequestLimit() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user1", request2);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user1", request2);
 
-        assertThrows(QueueLimitException.class, () -> {
-            jobQueue.putIfNotPresent("user1", request3);
-        });
+        assertThrows(QueueLimitException.class, () ->
+            jobQueue.putIfNotPresent("rqUid3", "user1", request3));
     }
 
     @Test
     void testPutIfNotPresent_ExceedsUserLimit() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user2", request2);
-        jobQueue.putIfNotPresent("user3", request3);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", request2);
+        jobQueue.putIfNotPresent("rqUid3", "user3", request3);
 
         Request request4 = new Request("req4", Language.ENGLISH);
-        assertThrows(QueueLimitException.class, () -> {
-            jobQueue.putIfNotPresent("user4", request4);
-        });
+        assertThrows(QueueLimitException.class, () ->
+            jobQueue.putIfNotPresent("rqUid4", "user4", request4));
     }
 
     @Test
     void testProcess_Next_SingleRequest() {
-        jobQueue.putIfNotPresent("user1", request1);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
 
         AtomicInteger processedCount = new AtomicInteger(0);
         List<Request> processedRequests = new ArrayList<>();
@@ -90,8 +89,8 @@ class FairJobQueueTest {
 
     @Test
     void testProcess_Next_RoundRobin() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user2", request2);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", request2);
 
         List<Request> processedRequests = new ArrayList<>();
 
@@ -106,9 +105,9 @@ class FairJobQueueTest {
 
     @Test
     void testProcess_Next_MultipleRequestsPerUser() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user1", request2);
-        jobQueue.putIfNotPresent("user2", request3);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user1", request2);
+        jobQueue.putIfNotPresent("rqUid3", "user2", request3);
 
         List<Request> processedRequests = new ArrayList<>();
 
@@ -134,34 +133,34 @@ class FairJobQueueTest {
 
     @Test
     void testIndex_FirstRequest() {
-        int position = jobQueue.putIfNotPresent("user1", request1);
+        int position = jobQueue.putIfNotPresent("rqUid1", "user1", request1);
 
         assertEquals(0, position);
-        assertEquals(0, jobQueue.index("user1", request1));
+        assertEquals(0, jobQueue.index("user1", request1).orElseThrow());
     }
 
     @Test
     void testIndex_MultipleUsers() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user2", request2);
-        jobQueue.putIfNotPresent("user1", request3);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", request2);
+        jobQueue.putIfNotPresent("rqUid3", "user1", request3);
 
-        assertEquals(0, jobQueue.index("user1", request1));
-        assertEquals(1, jobQueue.index("user2", request2));
-        assertEquals(2, jobQueue.index("user1", request3));
+        assertEquals(0, jobQueue.index("user1", request1).orElseThrow());
+        assertEquals(1, jobQueue.index("user2", request2).orElseThrow());
+        assertEquals(2, jobQueue.index("user1", request3).orElseThrow());
     }
 
     @Test
     void testIndex_RequestNotFound() {
-        jobQueue.putIfNotPresent("user1", request1);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
 
-        assertEquals(-1, jobQueue.index("user1", request2));
-        assertEquals(-1, jobQueue.index("user2", request1));
+        assertEquals(empty(), jobQueue.index("user1", request2));
+        assertEquals(empty(), jobQueue.index("user2", request1));
     }
 
     @Test
     void testIndex_EmptyQueue() {
-        assertEquals(-1, jobQueue.index("user1", request1));
+        assertEquals(empty(), jobQueue.index("user1", request1));
     }
 
     @Test
@@ -171,9 +170,9 @@ class FairJobQueueTest {
 
     @Test
     void testSize_MultipleRequests() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user2", request2);
-        jobQueue.putIfNotPresent("user1", request3);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", request2);
+        jobQueue.putIfNotPresent("rqUid3", "user1", request3);
 
         assertEquals(3, jobQueue.size());
     }
@@ -182,7 +181,7 @@ class FairJobQueueTest {
     void testIsEmpty() {
         assertTrue(jobQueue.isEmpty());
 
-        jobQueue.putIfNotPresent("user1", request1);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
         assertFalse(jobQueue.isEmpty());
 
         jobQueue.processNext(request -> {
@@ -199,11 +198,11 @@ class FairJobQueueTest {
         Request req3_1 = new Request("user3_req1", Language.ENGLISH);
         Request req3_2 = new Request("user3_req2", Language.ENGLISH);
 
-        jobQueue.putIfNotPresent("user1", req1_1);
-        jobQueue.putIfNotPresent("user2", req2_1);
-        jobQueue.putIfNotPresent("user3", req3_1);
-        jobQueue.putIfNotPresent("user1", req1_2);
-        jobQueue.putIfNotPresent("user3", req3_2);
+        jobQueue.putIfNotPresent("rqUid1", "user1", req1_1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", req2_1);
+        jobQueue.putIfNotPresent("rqUid3", "user3", req3_1);
+        jobQueue.putIfNotPresent("rqUid4", "user1", req1_2);
+        jobQueue.putIfNotPresent("rqUid5", "user3", req3_2);
 
         List<Request> processedRequests = new ArrayList<>();
 
@@ -224,14 +223,13 @@ class FairJobQueueTest {
 
     @Test
     void testProcessNextWithException() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user1", request2);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user1", request2);
 
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(RuntimeException.class, () ->
             jobQueue.processNext(request -> {
                 throw new RuntimeException("Processing failed");
-            });
-        });
+            }));
 
         // No changes
         assertEquals(2, jobQueue.size());
@@ -239,29 +237,29 @@ class FairJobQueueTest {
 
     @Test
     void testIndexCalculationAfterProcessing() {
-        jobQueue.putIfNotPresent("user1", request1);
-        jobQueue.putIfNotPresent("user2", request2);
-        jobQueue.putIfNotPresent("user1", request3);
+        jobQueue.putIfNotPresent("rqUid1", "user1", request1);
+        jobQueue.putIfNotPresent("rqUid2", "user2", request2);
+        jobQueue.putIfNotPresent("rqUid3", "user1", request3);
 
         // Initial indices
-        assertEquals(0, jobQueue.index("user1", request1));
-        assertEquals(1, jobQueue.index("user2", request2));
-        assertEquals(2, jobQueue.index("user1", request3));
+        assertEquals(0, jobQueue.index("user1", request1).orElseThrow());
+        assertEquals(1, jobQueue.index("user2", request2).orElseThrow());
+        assertEquals(2, jobQueue.index("user1", request3).orElseThrow());
 
         // Process first request (user1's first)
         jobQueue.processNext(request -> {
         });
 
         // Indices should update
-        assertEquals(0, jobQueue.index("user2", request2));
-        assertEquals(1, jobQueue.index("user1", request3));
-        assertEquals(-1, jobQueue.index("user1", request1)); // No longer in queue
+        assertEquals(0, jobQueue.index("user2", request2).orElseThrow());
+        assertEquals(1, jobQueue.index("user1", request3).orElseThrow());
+        assertEquals(empty(), jobQueue.index("user1", request1)); // No longer in queue
     }
 
     @Test
     void testSame() {
-        jobQueue.putIfNotPresent("user1", new Request("user1", Language.ENGLISH));
-        int pos = jobQueue.putIfNotPresent("user1", new Request("user1", Language.ENGLISH));
+        jobQueue.putIfNotPresent("rqUid1", "user1", new Request("user1", Language.ENGLISH));
+        int pos = jobQueue.putIfNotPresent("rqUid2", "user1", new Request("user1", Language.ENGLISH));
 
         assertEquals(1, jobQueue.size());
         assertEquals(0, pos);
