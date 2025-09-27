@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs;
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
@@ -53,16 +52,19 @@ public class AiArtControllerV2 {
     }
 
     @PostMapping("/prompt")
-    public ResponseEntity<Map<String, String>> prompt(
+    public ResponseEntity<PromptRs> prompt(
         @RequestBody @Valid PromptRq rq) {
 
         log.info("/prompt: " + rq.toString());
         RequestWithUserId request = Request.deserializeV2(rq);
 
         try {
-            jobQueue.putIfNotPresent(request.userId(), request.value());
+            int pos = jobQueue.putIfNotPresent(
+                rq.rqUid,
+                request.userId(),
+                request.value());
             counters.rsQueued().increment();
-            return ResponseEntity.ok(Map.of());
+            return ResponseEntity.ok(new PromptRs(pos));
         } catch (QueueLimitException e) {
             counters.rsLimit().increment();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
@@ -75,13 +77,16 @@ public class AiArtControllerV2 {
 
         if (imageRepository.hasImage(rqUid)) {
             return new HistoryRs(
+                null,
                 new HistoryRsOutputs(
                     new HistoryRsOutputsElem(
                         List.of(
                             new HistoryRsOutputsImage(
                                 rqUid)))));
         } else {
-            return new HistoryRs(null);
+            Integer index = jobQueue.index(rqUid)
+                .orElse(null);
+            return new HistoryRs(index, null);
         }
     }
 
@@ -111,7 +116,10 @@ public class AiArtControllerV2 {
         }
     }
 
-    public record HistoryRs(HistoryRsOutputs outputs) {
+    public record PromptRs(int artAiQueuePosition) {
+    }
+
+    public record HistoryRs(Integer artAiQueuePosition, HistoryRsOutputs outputs) {
         public record HistoryRsOutputs(HistoryRsOutputsElem elem) {
             public record HistoryRsOutputsElem(List<HistoryRsOutputsImage> images) {
                 public record HistoryRsOutputsImage(String filename) {
