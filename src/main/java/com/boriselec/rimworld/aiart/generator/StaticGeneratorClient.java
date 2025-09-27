@@ -34,13 +34,13 @@ public class StaticGeneratorClient implements GeneratorClient {
 
     @Override
     @Timed("generation.time")
-    public InputStream getImage(String description)
+    public InputStream getImage(String prompt)
         throws IOException, InterruptedException, URISyntaxException {
         log.info("Getting image...");
 
         HttpRequest request = HttpRequest.newBuilder(new URI(url))
             .timeout(timeout)
-            .POST(HttpRequest.BodyPublishers.ofString(description))
+            .POST(HttpRequest.BodyPublishers.ofString(prompt))
             .build();
         InputStream response = httpClient
             .send(request, this::processResponse)

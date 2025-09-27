@@ -33,7 +33,7 @@ import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRs
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
 
 /**
- * <a href="https://github.com/comfyanonymous/ComfyUI/issues/6607#issuecomment-3252875389">
+ * <a href="https://github.com/comfyanonymous/ComfyUI/issues/6607">
  * ComfyUI compatible API
  * </a>
  */
@@ -54,7 +54,7 @@ public class AiArtControllerV2 {
 
     @PostMapping("/prompt")
     public ResponseEntity<Map<String, String>> prompt(
-        @RequestBody @Valid AiArtControllerV2.PromptRq rq) {
+        @RequestBody @Valid PromptRq rq) {
 
         log.info("/prompt: " + rq.toString());
         RequestWithUserId request = Request.deserializeV2(rq);
@@ -105,8 +105,7 @@ public class AiArtControllerV2 {
         @NotNull @Valid PromptRqData artAi,
         @NotBlank @JsonProperty("prompt_id") String rqUid) {
         public record PromptRqData(
-            @NotBlank String thingDescription,
-            @NotBlank String artDescription,
+            @NotBlank String prompt,
             @NotBlank String userId,
             @NotBlank String language) {
         }
