@@ -6,6 +6,7 @@ import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -52,12 +53,13 @@ public class AiArtControllerV2 {
         RequestWithUserId request = Request.deserializeV2(rq);
 
         try {
+            String rqUid = imageRepository.getPromptUid(request.value().prompt());
             int pos = jobQueue.putIfNotPresent(
-                imageRepository.getPromptUid(request.value().prompt()), 
+                rqUid, 
                 request.userId(),
                 request.value());
             counters.rsQueued().increment();
-            return ResponseEntity.ok(new PromptRs(pos));
+            return ResponseEntity.ok(new PromptRs(rqUid, pos));
         } catch (QueueLimitException e) {
             counters.rsLimit().increment();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
@@ -107,7 +109,8 @@ public class AiArtControllerV2 {
         }
     }
 
-    public record PromptRs(int artAiQueuePosition) {
+    public record PromptRs(@JsonProperty("prompt_id") String rqUid,
+                           int artAiQueuePosition) {
     }
 
     public record HistoryRs(Integer artAiQueuePosition, HistoryRsOutputs outputs) {
