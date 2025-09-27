@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 @Component
 public class ImageFolderLimiter {
@@ -37,20 +38,24 @@ public class ImageFolderLimiter {
     }
 
     private long deleteOldBatch() throws IOException {
-        return Files.walk(folder)
-            .map(Path::toFile)
-            .filter(File::isFile)
-            .sorted(Comparator.comparing(File::lastModified))
-            .limit(DELETE_BATCH_SIZE)
-            .map(File::delete)
-            .count();
+        try (Stream<Path> stream = Files.walk(folder)) {
+            return stream
+                .map(Path::toFile)
+                .filter(File::isFile)
+                .sorted(Comparator.comparing(File::lastModified))
+                .limit(DELETE_BATCH_SIZE)
+                .mapToLong(file -> file.delete() ? 1L : 0L)
+                .sum();
+        }
     }
 
     private boolean isExceedSizeLimit() throws IOException {
-        return Files.walk(folder)
-            .map(Path::toFile)
-            .filter(File::isFile)
-            .mapToLong(File::length)
-            .sum() > folderMaxSize;
+        try (Stream<Path> stream = Files.walk(folder)) {
+            return stream
+                .map(Path::toFile)
+                .filter(File::isFile)
+                .mapToLong(File::length)
+                .sum() > folderMaxSize;
+        }
     }
 }
