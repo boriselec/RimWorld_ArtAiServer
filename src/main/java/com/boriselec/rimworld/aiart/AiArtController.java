@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+@Deprecated
 @RestController
 public class AiArtController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -35,7 +36,7 @@ public class AiArtController {
     public ResponseEntity<?> generate(@RequestBody String postData) {
         log.info("Received /generate: " + postData);
         var rq = Request.deserialize(postData);
-        return imageRepository.getImage(rq.value().prompt())
+        return imageRepository.getImageByPrompt(rq.value().prompt())
             .map(this::getImageResponse)
             .orElseGet(() -> process(rq));
     }
