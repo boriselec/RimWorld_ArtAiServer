@@ -1,7 +1,5 @@
 package com.boriselec.rimworld.aiart;
 
-import com.boriselec.rimworld.aiart.data.ArtDescription;
-
 public class ArtDescriptionTextProcessor {
     private static final String TALE_DATE_REGEX = " on [^ ]+ of (Aprimay|Jugust|Septober|Decembary)[^.]+.";
     private static final String TALE_DATE_REGEX_RUSSIAN = " [^ ]+ (Мартомай|Июгуст|Сентоноябрь|Декавраль)[^.]+.";
@@ -14,14 +12,8 @@ public class ArtDescriptionTextProcessor {
     // Vanilla Expanded
     private static final String VANILLA_EXPANDED = "\\(Vanilla [^)]*Expanded[^)]*\\)";
 
-    public static ArtDescription process(ArtDescription description) {
-        return new ArtDescription(
-            process(description.artDesc()),
-            process(description.thingDesc()));
-    }
-
-    private static String process(String description) {
-        return description.replaceAll(TALE_DATE_REGEX, ".")
+    public static String process(String prompt) {
+        return prompt.replaceAll(TALE_DATE_REGEX, ".")
             .replaceAll(TALE_DATE_REGEX_RUSSIAN, ".")
             .replaceAll(DRESSER_UNRELATED, "")
             .replaceAll(CRIB_UNRELATED, "")

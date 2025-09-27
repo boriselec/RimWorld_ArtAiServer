@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class ImageRepository {
@@ -45,9 +46,10 @@ public class ImageRepository {
             .exists();
     }
 
-    public void saveImage(InputStream is, String filename, String descriptionMetadata)
+    public void saveImage(InputStream is, String prompt, String processedPrompt)
         throws IOException {
 
+        String filename = UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
         try (ImageInputStream stream = ImageIO.createImageInputStream(is)) {
             ImageReader reader = null;
             ImageWriter writer = null;
@@ -59,7 +61,7 @@ public class ImageRepository {
                 IIOMetadataNode root = new IIOMetadataNode(
                     IIOMetadataFormatImpl.standardMetadataFormatName);
                 appendMetadata(root, "Software", "boriselec.com");
-                appendMetadata(root, "Description", descriptionMetadata);
+                appendMetadata(root, "Description", processedPrompt);
                 image.getMetadata().mergeTree(
                     IIOMetadataFormatImpl.standardMetadataFormatName, root);
 
@@ -70,7 +72,7 @@ public class ImageRepository {
                     writer.setOutput(output);
                     writer.write(image);
                 }
-                log.info("New image: %s: %s".formatted(descriptionMetadata, filePath));
+                log.info("New image: %s: %s".formatted(processedPrompt, filePath));
             } finally {
                 Optional.ofNullable(reader).ifPresent(ImageReader::dispose);
                 Optional.ofNullable(writer).ifPresent(ImageWriter::dispose);

@@ -29,7 +29,7 @@ public class Application implements SchedulingConfigurer {
     @Bean
     @ConditionalOnMissingBean(Translator.class)
     public Translator mockTranslator() {
-        return (language, description) -> description;
+        return (language, prompt) -> prompt;
     }
 
     @Bean

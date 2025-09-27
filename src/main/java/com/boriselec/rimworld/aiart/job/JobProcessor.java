@@ -2,7 +2,6 @@ package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
 import com.boriselec.rimworld.aiart.Counters;
-import com.boriselec.rimworld.aiart.data.ArtDescription;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
@@ -40,13 +39,13 @@ public class JobProcessor {
         while (!queue.isEmpty()) {
             queue.processNext(request -> {
                 try {
-                    String englishDescription = prepare(request);
-                    log.info("Prepared description (%s): %s".formatted(
-                        request.language(), englishDescription));
+                    String processedPrompt = prepare(request);
+                    log.info("Prepared prompt (%s): %s".formatted(
+                        request.language(), processedPrompt));
 
-                    InputStream image = generatorClient.getImage(englishDescription);
-                    String filename = request.getArtDescription().uid();
-                    imageRepository.saveImage(image, filename, englishDescription);
+                    InputStream image = generatorClient.getImage(processedPrompt);
+                    String prompt = request.prompt();
+                    imageRepository.saveImage(image, prompt, processedPrompt);
                     counters.imageSaved().increment();
                 } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -56,11 +55,8 @@ public class JobProcessor {
     }
 
     private String prepare(Request request) {
-        ArtDescription originalDesc = request.getArtDescription();
-        ArtDescription preparedDesc = ArtDescriptionTextProcessor.process(originalDesc);
-        ArtDescription englishDesc = translator.translateFrom(
-            request.language(),
-            preparedDesc);
-        return englishDesc.toString();
+        String originalDesc = request.prompt();
+        String preparedDesc = ArtDescriptionTextProcessor.process(originalDesc);
+        return translator.translateFrom(request.language(), preparedDesc);
     }
 }

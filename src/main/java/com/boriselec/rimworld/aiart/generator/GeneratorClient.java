@@ -5,6 +5,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 
 public interface GeneratorClient {
-    InputStream getImage(String description)
+    InputStream getImage(String prompt)
         throws IOException, InterruptedException, URISyntaxException;
 }

@@ -35,7 +35,7 @@ public class AiArtController {
     public ResponseEntity<?> generate(@RequestBody String postData) {
         log.info("Received /generate: " + postData);
         var rq = Request.deserialize(postData);
-        return imageRepository.getImage(rq.value().getArtDescription().uid())
+        return imageRepository.getImage(rq.value().prompt())
             .map(this::getImageResponse)
             .orElseGet(() -> process(rq));
     }
