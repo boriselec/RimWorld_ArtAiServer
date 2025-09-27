@@ -31,6 +31,12 @@ public class ImageRepository {
         this.imageFolder = imageFolder;
     }
 
+    @Deprecated
+    public Optional<InputStream> getImageByPrompt(String prompt) {
+        String filename = UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
+        return getImage(filename);
+    }
+
     public Optional<InputStream> getImage(String filename) {
         try {
             return Optional.of(
