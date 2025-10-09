@@ -52,10 +52,16 @@ public class AiArtControllerV2 {
         log.info("/prompt: " + rq.toString());
         RequestWithUserId request = Request.deserializeV2(rq);
 
+
         try {
             String rqUid = imageRepository.getPromptUid(request.value().prompt());
+
+            if (imageRepository.hasImage(rqUid)) {
+                return ResponseEntity.ok(new PromptRs(rqUid, 0));
+            }
+
             int pos = jobQueue.putIfNotPresent(
-                rqUid, 
+                rqUid,
                 request.userId(),
                 request.value());
             counters.rsQueued().increment();
