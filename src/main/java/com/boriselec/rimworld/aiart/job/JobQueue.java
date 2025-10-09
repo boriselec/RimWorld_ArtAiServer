@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public interface JobQueue {
+    int POSITION_READY = 0;
+
     int putIfNotPresent(String rqUid, String userId, Request request);
 
     void processNext(Consumer<Request> consumer);
