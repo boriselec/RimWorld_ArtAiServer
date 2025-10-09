@@ -24,6 +24,7 @@ import java.util.List;
 
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs;
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
+import static com.boriselec.rimworld.aiart.job.JobQueue.POSITION_READY;
 
 /**
  * <a href="https://github.com/comfyanonymous/ComfyUI/issues/6607">
@@ -57,7 +58,7 @@ public class AiArtControllerV2 {
             String rqUid = imageRepository.getPromptUid(request.value().prompt());
 
             if (imageRepository.hasImage(rqUid)) {
-                return ResponseEntity.ok(new PromptRs(rqUid, 0));
+                return ResponseEntity.ok(new PromptRs(rqUid, POSITION_READY));
             }
 
             int pos = jobQueue.putIfNotPresent(
@@ -78,15 +79,15 @@ public class AiArtControllerV2 {
 
         if (imageRepository.hasImage(rqUid)) {
             return new HistoryRs(
-                null,
+                POSITION_READY,
                 new HistoryRsOutputs(
                     new HistoryRsOutputsElem(
                         List.of(
                             new HistoryRsOutputsImage(
                                 rqUid)))));
         } else {
-            Integer index = jobQueue.index(rqUid)
-                .orElse(null);
+            int index = jobQueue.index(rqUid)
+                .orElseThrow();
             return new HistoryRs(index, null);
         }
     }
@@ -117,7 +118,7 @@ public class AiArtControllerV2 {
                            int artAiQueuePosition) {
     }
 
-    public record HistoryRs(Integer artAiQueuePosition, HistoryRsOutputs outputs) {
+    public record HistoryRs(int artAiQueuePosition, HistoryRsOutputs outputs) {
         public record HistoryRsOutputs(HistoryRsOutputsElem elem) {
             public record HistoryRsOutputsElem(List<HistoryRsOutputsImage> images) {
                 public record HistoryRsOutputsImage(String filename) {
