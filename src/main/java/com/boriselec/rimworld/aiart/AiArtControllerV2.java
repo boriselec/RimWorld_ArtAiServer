@@ -47,7 +47,7 @@ public class AiArtControllerV2 {
 
     @PostMapping("/prompt")
     public ResponseEntity<PromptRs> prompt(
-        @RequestBody @Valid PromptRq rq) {
+        @RequestBody @Valid @NotNull PromptRq rq) {
 
         log.info("/prompt: " + rq.toString());
         RequestWithUserId request = Request.deserializeV2(rq);
@@ -101,12 +101,10 @@ public class AiArtControllerV2 {
             .body(new InputStreamResource(is));
     }
 
-    public record PromptRq(@NotNull @Valid PromptRqData artAi) {
-        public record PromptRqData(
-            @NotBlank String prompt,
-            @NotBlank String userId,
-            @NotBlank String language) {
-        }
+    public record PromptRq(
+        @NotBlank String prompt,
+        @NotBlank String userId,
+        @NotBlank String language) {
     }
 
     public record PromptRs(@JsonProperty("prompt_id") String rqUid,
