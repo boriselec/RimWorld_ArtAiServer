@@ -19,12 +19,11 @@ public record Request(String prompt, Language language) {
     }
 
     public static RequestWithUserId deserializeV2(PromptRq rq) {
-        PromptRq.PromptRqData rqData = rq.artAi();
-        Language language = Language.fromRimworldCode(rqData.language());
+        Language language = Language.fromRimworldCode(rq.language());
         return new RequestWithUserId(
-            rqData.userId(),
+            rq.userId(),
             new Request(
-                rq.artAi().prompt(),
+                rq.prompt(),
                 language));
     }
 }
