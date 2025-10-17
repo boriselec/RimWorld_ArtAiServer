@@ -58,15 +58,15 @@ public class AiArtControllerV2 {
             String rqUid = imageRepository.getPromptUid(request.value().prompt());
 
             if (imageRepository.hasImage(rqUid)) {
-                return ResponseEntity.ok(new PromptRs(rqUid, POSITION_READY));
+                return ResponseEntity.ok(new PromptRs(rqUid));
             }
 
-            int pos = jobQueue.putIfNotPresent(
+            jobQueue.putIfNotPresent(
                 rqUid,
                 request.userId(),
                 request.value());
             counters.rsQueued().increment();
-            return ResponseEntity.ok(new PromptRs(rqUid, pos));
+            return ResponseEntity.ok(new PromptRs(rqUid));
         } catch (QueueLimitException e) {
             counters.rsLimit().increment();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
@@ -114,8 +114,7 @@ public class AiArtControllerV2 {
         @NotBlank String language) {
     }
 
-    public record PromptRs(@JsonProperty("prompt_id") String rqUid,
-                           int artAiQueuePosition) {
+    public record PromptRs(@JsonProperty("prompt_id") String rqUid) {
     }
 
     public record HistoryRs(int artAiQueuePosition, HistoryRsOutputs outputs) {
