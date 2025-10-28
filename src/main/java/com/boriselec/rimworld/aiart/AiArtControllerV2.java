@@ -98,8 +98,6 @@ public class AiArtControllerV2 {
             return Map.of(
                 //todo delete
                 "artAiQueuePosition", index,
-                //todo delete
-                "outputs", null,
                 rqUid, new HistoryRs(index, null));
         }
     }
