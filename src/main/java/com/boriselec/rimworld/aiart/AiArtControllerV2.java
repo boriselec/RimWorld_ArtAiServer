@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs;
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
@@ -74,21 +75,32 @@ public class AiArtControllerV2 {
     }
 
     @GetMapping("/history/{rqUid}")
-    public @ResponseBody HistoryRs history(@PathVariable String rqUid) {
+    public @ResponseBody Map<String, ?> history(@PathVariable String rqUid) {
         log.info("/history: " + rqUid);
 
         if (imageRepository.hasImage(rqUid)) {
-            return new HistoryRs(
-                POSITION_READY,
-                new HistoryRsOutputs(
-                    new HistoryRsOutputsElem(
-                        List.of(
-                            new HistoryRsOutputsImage(
-                                rqUid)))));
+            HistoryRsOutputs outputs = new HistoryRsOutputs(
+                new HistoryRsOutputsElem(
+                    List.of(
+                        new HistoryRsOutputsImage(
+                            rqUid))));
+            return Map.of(
+                //todo delete
+                "artAiQueuePosition", POSITION_READY,
+                //todo delete
+                "outputs", outputs,
+                rqUid, new HistoryRs(
+                    POSITION_READY,
+                    outputs));
         } else {
             int index = jobQueue.index(rqUid)
                 .orElseThrow();
-            return new HistoryRs(index, null);
+            return Map.of(
+                //todo delete
+                "artAiQueuePosition", index,
+                //todo delete
+                "outputs", null,
+                rqUid, new HistoryRs(index, null));
         }
     }
 
