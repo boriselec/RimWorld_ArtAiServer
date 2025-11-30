@@ -16,6 +16,8 @@ public interface JobQueue {
 
     int size();
 
+    int userSize();
+
     Optional<Integer> index(String rqUid);
 
     Optional<Integer> index(String userId, Request request);

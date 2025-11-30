@@ -20,6 +20,7 @@ public class StatusController {
     @GetMapping("/status")
     public ResponseEntity<String> getStatus() {
         int queueSize = status.queueSize();
+        int queueUserSize = status.queueUserSize();
         String timeAgo = Optional.ofNullable(status.lastSuccess())
             .map(lastSuccess -> Duration.between(lastSuccess, Instant.now()))
             .map(this::formatDuration)
@@ -74,10 +75,14 @@ public class StatusController {
                         <td>Queue Size</td>
                         <td>%d</td>
                     </tr>
+                    <tr>
+                        <td>Players Waiting</td>
+                        <td>%d</td>
+                    </tr>
                 </table>
             </body>
             </html>
-            """.formatted(styledTimeAgo, queueSize);
+            """.formatted(styledTimeAgo, queueSize, queueUserSize);
 
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_HTML)
