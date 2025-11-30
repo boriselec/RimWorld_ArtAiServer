@@ -27,9 +27,10 @@ public class StatusController {
             .orElse("never");
 
         String styledTimeAgo = (timeAgo.equals("never") || timeAgo.contains("day"))
-            ? String.format("<span style=\"font-weight: bold; color: red;\">%s</span>",
+            ? String.format("<span style=\"font-weight:bold;color:red;\">%s</span>",
                     timeAgo)
-            : timeAgo;
+            : String.format("<span style=\"font-weight:bold;color:green;\">%s</span>",
+                    timeAgo);
 
         String html = """
             <!DOCTYPE html>
