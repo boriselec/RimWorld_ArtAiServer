@@ -7,6 +7,8 @@ import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -49,12 +51,12 @@ public class AiArtControllerV2 {
 
     @PostMapping("/prompt")
     public ResponseEntity<PromptRs> prompt(
-        @RequestBody @Valid @NotNull PromptRq rq) {
+        @RequestBody @Valid @NotNull PromptRq rq, HttpServletRequest httpRequest) {
 
         log.info("/prompt: " + rq.toString());
+        log.info("IP: " + httpRequest.getHeader("X-Real-IP"));
+
         RequestWithUserId request = Request.deserializeV2(rq);
-
-
         try {
             String rqUid = imageRepository.getPromptUid(request.value().prompt());
 
