@@ -19,6 +19,10 @@ public class Status {
         return jobQueue.size();
     }
 
+    public int queueUserSize() {
+        return jobQueue.userSize();
+    }
+
     public Instant lastSuccess() {
         return lastSuccessTime;
     }

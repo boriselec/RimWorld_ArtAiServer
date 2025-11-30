@@ -145,7 +145,7 @@ public class FairJobQueue implements JobQueue {
         } else {
             log.error("Unexpected state: request is null");
         }
-        
+
         if (isEmpty()) {
             rqByUid.clear();
         }
@@ -168,6 +168,21 @@ public class FairJobQueue implements JobQueue {
             return userQueues.values().stream()
                 .mapToInt(Queue::size)
                 .sum();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Returns the total number of requests in the queue across all users
+     *
+     * @return total number of pending requests
+     */
+    @Override
+    public int userSize() {
+        lock.lock();
+        try {
+            return userRing.size();
         } finally {
             lock.unlock();
         }
@@ -269,7 +284,7 @@ public class FairJobQueue implements JobQueue {
     public String toString() {
         return "JobQueue{" +
             "size=" + size() +
-            ", userRingSize=" + userRing.size() +
+            ", userRingSize=" + userSize() +
             '}';
     }
 }
