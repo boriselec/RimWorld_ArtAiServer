@@ -58,7 +58,7 @@ public class AiArtController {
     }
 
     private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
-        counters.rsImage().increment();
+        counters.rsImageV1().increment();
         return ResponseEntity.ok()
             .contentType(MediaType.IMAGE_PNG)
             .body(new InputStreamResource(is));
