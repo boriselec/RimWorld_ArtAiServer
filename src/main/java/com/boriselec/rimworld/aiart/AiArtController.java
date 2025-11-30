@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Optional;
 
 @Deprecated
 @RestController
@@ -40,19 +41,20 @@ public class AiArtController {
         @RequestBody String postData, HttpServletRequest httpRequest) {
 
         log.info("Received /generate: " + postData);
-        log.info("IP: " + httpRequest.getHeader("X-Real-IP"));
 
         var rq = Request.deserialize(postData);
-        String filename = imageRepository.getPromptUid(rq.value().prompt());
+        var userId = Optional.ofNullable(httpRequest.getHeader("X-Real-IP"))
+            .orElse("unknown");
+        String filename = imageRepository.getPromptUid(rq.prompt());
         return imageRepository.getImage(filename)
             .map(this::getImageResponse)
-            .orElseGet(() -> process(rq));
+            .orElseGet(() -> process(rq, userId));
     }
 
-    private ResponseEntity<InputStreamResource> process(RequestWithUserId rq) {
+    private ResponseEntity<InputStreamResource> process(Request rq, String userId) {
         String response;
         try {
-            int position = jobQueue.putIfNotPresent("", rq.userId(), rq.value());
+            int position = jobQueue.putIfNotPresent("", userId, rq);
             response = "Image is generating... Please wait" +
                 "\n\nQueued: " + position;
             counters.rsQueued().increment();

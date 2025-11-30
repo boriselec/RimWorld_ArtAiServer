@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -54,20 +56,18 @@ public class AiArtControllerV2 {
         @RequestBody @Valid @NotNull PromptRq rq, HttpServletRequest httpRequest) {
 
         log.info("/prompt: " + rq.toString());
-        log.info("IP: " + httpRequest.getHeader("X-Real-IP"));
 
-        RequestWithUserId request = Request.deserializeV2(rq);
+        Request request = Request.deserializeV2(rq);
+        String userId = ofNullable(httpRequest.getHeader("X-Real-IP"))
+            .orElse("unknown");
         try {
-            String rqUid = imageRepository.getPromptUid(request.value().prompt());
+            String rqUid = imageRepository.getPromptUid(request.prompt());
 
             if (imageRepository.hasImage(rqUid)) {
                 return ResponseEntity.ok(new PromptRs(rqUid));
             }
 
-            jobQueue.putIfNotPresent(
-                rqUid,
-                request.userId(),
-                request.value());
+            jobQueue.putIfNotPresent(rqUid, userId, request);
             counters.rsQueued().increment();
             return ResponseEntity.ok(new PromptRs(rqUid));
         } catch (QueueLimitException e) {
@@ -122,7 +122,6 @@ public class AiArtControllerV2 {
 
     public record PromptRq(
         @NotBlank String prompt,
-        @NotBlank String userId,
         @NotBlank String language) {
     }
 
