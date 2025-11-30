@@ -5,6 +5,9 @@ import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
@@ -33,8 +36,12 @@ public class AiArtController {
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generate(@RequestBody String postData) {
+    public ResponseEntity<?> generate(
+        @RequestBody String postData, HttpServletRequest httpRequest) {
+
         log.info("Received /generate: " + postData);
+        log.info("IP: " + httpRequest.getHeader("X-Real-IP"));
+
         var rq = Request.deserialize(postData);
         String filename = imageRepository.getPromptUid(rq.value().prompt());
         return imageRepository.getImage(filename)
