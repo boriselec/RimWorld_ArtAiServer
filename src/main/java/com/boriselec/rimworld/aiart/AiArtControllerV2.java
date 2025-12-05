@@ -70,7 +70,7 @@ public class AiArtControllerV2 {
             jobQueue.putIfNotPresent(rqUid, userId, request);
             counters.rsQueued().increment();
             return ResponseEntity.ok(new PromptRs(rqUid));
-        } catch (QueueLimitException e) {
+        } catch (QueueLimitException _) {
             counters.rsLimit().increment();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
