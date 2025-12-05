@@ -40,7 +40,7 @@ public class ImageRepository {
             return Optional.of(
                 new DataInputStream(
                     new FileInputStream(getFilePath(filename))));
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException _) {
             return Optional.empty();
         }
     }
