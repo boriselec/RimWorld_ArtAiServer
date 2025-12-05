@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RimWorld AI Art Server Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .time-ok {
+            font-weight: bold;
+            color: green;
+        }
+        .time-warning {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Art Server Status</h1>
+    <table>
+        <tr>
+            <td>Last Successful Generation</td>
+            <td>
+                <span th:class="${isTimeWarning} ? 'time-warning' : 'time-ok'" th:text="${timeAgo}"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>Queue Size</td>
+            <td th:text="${queueSize}"></td>
+        </tr>
+        <tr>
+            <td>Players Waiting</td>
+            <td th:text="${queueUserSize}"></td>
+        </tr>
+    </table>
+</body>
+</html>
