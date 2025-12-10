@@ -62,12 +62,11 @@ public class FairJobQueue implements JobQueue {
                 throw new QueueLimitException("Request limit exceeded");
             }
 
-            boolean wasEmpty = userQueue.isEmpty();
             userQueue.offer(request);
             rqByUid.put(rqUid, new RequestWithUserId(userId, request));
 
-            // Add user to ring if they weren't in it (had empty queue)
-            if (wasEmpty && !userRing.contains(userId)) {
+            // Add user to ring if they weren't in it
+            if (!userRing.contains(userId)) {
                 if (userRing.size() >= maxUsers) {
                     throw new QueueLimitException("User limit exceeded");
                 }
