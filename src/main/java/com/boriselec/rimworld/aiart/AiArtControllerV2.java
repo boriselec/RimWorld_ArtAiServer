@@ -2,12 +2,11 @@ package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem.HistoryRsOutputsImage;
 import com.boriselec.rimworld.aiart.data.Request;
-import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
+import com.boriselec.rimworld.aiart.monitoring.Counters;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -21,8 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static java.util.Optional.ofNullable;
-
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +27,7 @@ import java.util.Map;
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs;
 import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
 import static com.boriselec.rimworld.aiart.job.JobQueue.POSITION_READY;
+import static java.util.Optional.ofNullable;
 
 /**
  * <a href="https://github.com/comfyanonymous/ComfyUI/issues/6607">

@@ -1,4 +1,4 @@
-package com.boriselec.rimworld.aiart;
+package com.boriselec.rimworld.aiart.monitoring;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

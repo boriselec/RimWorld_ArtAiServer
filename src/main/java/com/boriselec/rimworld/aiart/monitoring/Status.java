@@ -1,4 +1,4 @@
-package com.boriselec.rimworld.aiart;
+package com.boriselec.rimworld.aiart.monitoring;
 
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import org.springframework.stereotype.Component;
