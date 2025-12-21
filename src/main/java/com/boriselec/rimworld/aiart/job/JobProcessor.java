@@ -2,6 +2,7 @@ package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
 import com.boriselec.rimworld.aiart.monitoring.Counters;
+import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
 import com.boriselec.rimworld.aiart.monitoring.Status;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
@@ -25,16 +26,19 @@ public class JobProcessor {
     private final Translator translator;
     private final Counters counters;
     private final Status status;
+    private final ImageRequestMonitoring imageRequestMonitoring;
 
     public JobProcessor(JobQueue queue, ImageRepository imageRepository,
                         GeneratorClient generatorClient, Translator translator,
-                        Counters counters, Status status) {
+                        Counters counters, Status status,
+                        ImageRequestMonitoring imageRequestMonitoring) {
         this.queue = queue;
         this.imageRepository = imageRepository;
         this.generatorClient = generatorClient;
         this.translator = translator;
         this.counters = counters;
         this.status = status;
+        this.imageRequestMonitoring = imageRequestMonitoring;
     }
 
     @Scheduled(fixedDelay = 1000)
@@ -50,8 +54,10 @@ public class JobProcessor {
                     String prompt = request.prompt();
                     String filename = imageRepository.getPromptUid(prompt);
                     imageRepository.saveImage(image, filename, processedPrompt);
+
                     counters.imageSaved().increment();
                     status.updateLastSuccess();
+                    imageRequestMonitoring.putGenerated(filename);
                 } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
