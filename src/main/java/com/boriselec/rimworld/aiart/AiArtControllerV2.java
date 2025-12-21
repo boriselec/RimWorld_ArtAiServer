@@ -6,6 +6,7 @@ import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
 import com.boriselec.rimworld.aiart.monitoring.Counters;
+import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -41,12 +42,15 @@ public class AiArtControllerV2 {
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
     private final Counters counters;
+    private final ImageRequestMonitoring imageRequestMonitoring;
 
     public AiArtControllerV2(ImageRepository imageRepository, JobQueue jobQueue,
-                             Counters counters) {
+                             Counters counters,
+                             ImageRequestMonitoring imageRequestMonitoring) {
         this.imageRepository = imageRepository;
         this.jobQueue = jobQueue;
         this.counters = counters;
+        this.imageRequestMonitoring = imageRequestMonitoring;
     }
 
     @PostMapping("/prompt")
@@ -105,6 +109,7 @@ public class AiArtControllerV2 {
     @GetMapping("/view")
     public ResponseEntity<InputStreamResource> view(@RequestParam String filename) {
         log.info("/view: " + filename);
+        imageRequestMonitoring.finish(filename);
 
         return imageRepository.getImage(filename)
             .map(this::getImageResponse)
