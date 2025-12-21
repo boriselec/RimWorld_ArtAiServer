@@ -1,8 +1,8 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
-import com.boriselec.rimworld.aiart.Counters;
-import com.boriselec.rimworld.aiart.Status;
+import com.boriselec.rimworld.aiart.monitoring.Counters;
+import com.boriselec.rimworld.aiart.monitoring.Status;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.image.ImageRepository;

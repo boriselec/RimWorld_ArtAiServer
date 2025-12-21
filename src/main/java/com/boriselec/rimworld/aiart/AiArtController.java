@@ -1,11 +1,11 @@
 package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.data.Request;
-import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
 
+import com.boriselec.rimworld.aiart.monitoring.Counters;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.boriselec.rimworld.aiart;
+package com.boriselec.rimworld.aiart.monitoring;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
