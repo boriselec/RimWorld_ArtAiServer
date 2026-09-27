@@ -1,6 +1,6 @@
 package com.boriselec.rimworld.aiart;
 
-import com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem.HistoryRsOutputsImage;
+import com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.Ready.HistoryRsOutputs.HistoryRsOutputsElem.HistoryRsOutputsImage;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs;
-import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.HistoryRsOutputs.HistoryRsOutputsElem;
-import static com.boriselec.rimworld.aiart.job.JobQueue.POSITION_READY;
+import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.Ready.HistoryRsOutputs;
+import static com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.Ready.HistoryRsOutputs.HistoryRsOutputsElem;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -78,31 +78,27 @@ public class AiArtControllerV2 {
     }
 
     @GetMapping("/history/{rqUid}")
-    public @ResponseBody Map<String, ?> history(@PathVariable String rqUid) {
+    public ResponseEntity<Map<String, HistoryRs>> history(@PathVariable String rqUid) {
         log.info("/history: " + rqUid);
 
+        Optional<Integer> index = jobQueue.index(rqUid);
         if (imageRepository.hasImage(rqUid)) {
-            HistoryRsOutputs outputs = new HistoryRsOutputs(
-                new HistoryRsOutputsElem(
-                    List.of(
-                        new HistoryRsOutputsImage(
-                            rqUid))));
-            return Map.of(
-                //todo delete
-                "artAiQueuePosition", POSITION_READY,
-                //todo delete
-                "outputs", outputs,
-                rqUid, new HistoryRs(
-                    POSITION_READY,
-                    outputs));
+            return ResponseEntity.ok(
+                    Map.of(rqUid, new HistoryRs.Ready(outputs(rqUid))));
+        } else if (index.isPresent()) {
+            return ResponseEntity.ok(
+                    Map.of(rqUid, new HistoryRs.Queued(index.get())));
         } else {
-            int index = jobQueue.index(rqUid)
-                .orElseThrow();
-            return Map.of(
-                //todo delete
-                "artAiQueuePosition", index,
-                rqUid, new HistoryRs(index, null));
+            return ResponseEntity.notFound().build();
         }
+    }
+
+    private static HistoryRsOutputs outputs(String rqUid) {
+        return new HistoryRsOutputs(
+            new HistoryRsOutputsElem(
+                List.of(
+                    new HistoryRsOutputsImage(
+                        rqUid))));
     }
 
     @GetMapping("/view")
@@ -130,10 +126,15 @@ public class AiArtControllerV2 {
     public record PromptRs(@JsonProperty("prompt_id") String rqUid) {
     }
 
-    public record HistoryRs(int artAiQueuePosition, HistoryRsOutputs outputs) {
-        public record HistoryRsOutputs(HistoryRsOutputsElem elem) {
-            public record HistoryRsOutputsElem(List<HistoryRsOutputsImage> images) {
-                public record HistoryRsOutputsImage(String filename) {
+    public sealed interface HistoryRs {
+        record Queued(int artAiQueuePosition) implements HistoryRs {
+        }
+
+        record Ready(HistoryRsOutputs outputs) implements HistoryRs {
+            public record HistoryRsOutputs(HistoryRsOutputsElem elem) {
+                public record HistoryRsOutputsElem(List<HistoryRsOutputsImage> images) {
+                    public record HistoryRsOutputsImage(String filename) {
+                    }
                 }
             }
         }
