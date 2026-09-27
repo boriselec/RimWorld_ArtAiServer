@@ -9,15 +9,14 @@ import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.Optional;
 
 @Deprecated
@@ -49,14 +48,14 @@ public class AiArtController {
             .orElse("unknown");
         String filename = imageRepository.getPromptUid(rq.prompt());
         return imageRepository.getImage(filename)
-            .map(inputStream -> {
+            .map(image -> {
                 imageRequestMonitoring.finish(filename);
-                return getImageResponse(inputStream);
+                return getImageResponse(image);
             })
             .orElseGet(() -> process(rq, userId));
     }
 
-    private ResponseEntity<InputStreamResource> process(Request rq, String userId) {
+    private ResponseEntity<Resource> process(Request rq, String userId) {
         String response;
         try {
             int position = jobQueue.putIfNotPresent("", userId, rq);
@@ -71,17 +70,16 @@ public class AiArtController {
         return getInProgressResponse(response);
     }
 
-    private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
+    private ResponseEntity<Resource> getImageResponse(Resource image) {
         counters.rsImageV1().increment();
         return ResponseEntity.ok()
             .contentType(MediaType.IMAGE_PNG)
-            .body(new InputStreamResource(is));
+            .body(image);
     }
 
-    private ResponseEntity<InputStreamResource> getInProgressResponse(String response) {
+    private ResponseEntity<Resource> getInProgressResponse(String response) {
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_PLAIN)
-            .body(new InputStreamResource(
-                new ByteArrayInputStream(response.getBytes())));
+            .body(new ByteArrayResource(response.getBytes()));
     }
 }

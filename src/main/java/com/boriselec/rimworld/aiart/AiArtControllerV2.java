@@ -14,14 +14,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +106,7 @@ public class AiArtControllerV2 {
     }
 
     @GetMapping("/view")
-    public ResponseEntity<InputStreamResource> view(@RequestParam String filename) {
+    public ResponseEntity<Resource> view(@RequestParam String filename) {
         log.info("/view: " + filename);
         imageRequestMonitoring.finish(filename);
 
@@ -116,11 +115,11 @@ public class AiArtControllerV2 {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private ResponseEntity<InputStreamResource> getImageResponse(InputStream is) {
+    private ResponseEntity<Resource> getImageResponse(Resource image) {
         counters.rsImageV2().increment();
         return ResponseEntity.ok()
             .contentType(MediaType.IMAGE_PNG)
-            .body(new InputStreamResource(is));
+            .body(image);
     }
 
     public record PromptRq(
