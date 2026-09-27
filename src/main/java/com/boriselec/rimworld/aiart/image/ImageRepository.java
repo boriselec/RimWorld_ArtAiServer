@@ -3,6 +3,8 @@ package com.boriselec.rimworld.aiart.image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.IIOImage;
@@ -13,10 +15,7 @@ import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -35,14 +34,9 @@ public class ImageRepository {
         return UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
     }
 
-    public Optional<InputStream> getImage(String filename) {
-        try {
-            return Optional.of(
-                new DataInputStream(
-                    new FileInputStream(getFilePath(filename))));
-        } catch (FileNotFoundException _) {
-            return Optional.empty();
-        }
+    public Optional<Resource> getImage(String filename) {
+        return Optional.<Resource>of(new PathResource(getFilePath(filename)))
+            .filter(Resource::exists);
     }
 
     public boolean hasImage(String filename) {
