@@ -22,6 +22,11 @@ import java.util.Optional;
 @Deprecated
 @RestController
 public class AiArtController {
+    private static final String SUNSET_NOTICE =
+        "Mod update required.\n\n" +
+        "This version of AI Art uses an old server API\n" +
+        "that will be switched off at the end of 2026.";
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
@@ -56,18 +61,15 @@ public class AiArtController {
     }
 
     private ResponseEntity<Resource> process(Request rq, String userId) {
-        String response;
         try {
-            int position = jobQueue.putIfNotPresent("", userId, rq);
-            response = "Image is generating... Please wait" +
-                "\n\nQueued: " + position;
+            jobQueue.putIfNotPresent("", userId, rq);
             counters.rsQueued().increment();
         } catch (QueueLimitException e) {
             log.info(e.getMessage());
-            response = e.getMessage() + ". Try later.";
             counters.rsLimit().increment();
+            return getInProgressResponse(e.getMessage() + ". Try later.");
         }
-        return getInProgressResponse(response);
+        return getInProgressResponse(SUNSET_NOTICE);
     }
 
     private ResponseEntity<Resource> getImageResponse(Resource image) {
