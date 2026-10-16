@@ -62,7 +62,7 @@ public class AiArtControllerV2 {
         String userId = ofNullable(httpRequest.getHeader("X-Real-IP"))
             .orElse("unknown");
         try {
-            String rqUid = imageRepository.getPromptUid(request.prompt());
+            String rqUid = imageRepository.getRequestUid(request);
 
             if (imageRepository.hasImage(rqUid)) {
                 return ResponseEntity.ok(new PromptRs(rqUid));
@@ -78,8 +78,10 @@ public class AiArtControllerV2 {
     }
 
     @GetMapping("/history/{rqUid}")
-    public ResponseEntity<Map<String, HistoryRs>> history(@PathVariable String rqUid) {
+    public ResponseEntity<Map<String, HistoryRs>> history(
+        @PathVariable String rqUid, HttpServletRequest httpRequest) {
         log.info("/history: " + rqUid);
+        jobQueue.touch(ofNullable(httpRequest.getHeader("X-Real-IP")).orElse("unknown"));
 
         Optional<Integer> index = jobQueue.index(rqUid);
         if (imageRepository.hasImage(rqUid)) {
@@ -118,9 +120,13 @@ public class AiArtControllerV2 {
             .body(image);
     }
 
+    /**
+     * @param seed optional: the mod sends a new one to regenerate the image
+     */
     public record PromptRq(
         @NotBlank String prompt,
-        @NotBlank String language) {
+        @NotBlank String language,
+        Integer seed) {
     }
 
     public record PromptRs(@JsonProperty("prompt_id") String rqUid) {

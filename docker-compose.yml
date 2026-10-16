@@ -12,12 +12,7 @@ services:
     environment:
       - GENERATOR_URL=http://generator:8081/generate
   generator:
-    image: ghcr.io/boriselec/rimworld_artaistablediffusion:main
+    image: ghcr.io/boriselec/rimworld_artaigenerator:main
     container_name: generator
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+    volumes:
+      - "./models:/models"

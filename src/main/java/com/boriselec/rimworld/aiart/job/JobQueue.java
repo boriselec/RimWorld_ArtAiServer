@@ -8,6 +8,11 @@ import java.util.function.Consumer;
 public interface JobQueue {
     int putIfNotPresent(String rqUid, String userId, Request request);
 
+    /**
+     * The user is still waiting (polls the queue)
+     */
+    void touch(String userId);
+
     void processNext(Consumer<Request> consumer);
 
     boolean isEmpty();

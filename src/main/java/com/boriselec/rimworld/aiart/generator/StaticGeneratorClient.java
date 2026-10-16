@@ -34,11 +34,12 @@ public class StaticGeneratorClient implements GeneratorClient {
 
     @Override
     @Timed("generation.time")
-    public InputStream getImage(String prompt)
+    public InputStream getImage(String prompt, Integer seed)
         throws IOException, InterruptedException, URISyntaxException {
         log.info("Getting image...");
 
-        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+        String requestUrl = seed == null ? url : url + "?seed=" + seed;
+        HttpRequest request = HttpRequest.newBuilder(new URI(requestUrl))
             .timeout(timeout)
             .POST(HttpRequest.BodyPublishers.ofString(prompt))
             .build();

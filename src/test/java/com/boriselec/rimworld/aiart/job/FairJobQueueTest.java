@@ -5,6 +5,7 @@ import com.boriselec.rimworld.aiart.translate.Language;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,7 +25,7 @@ class FairJobQueueTest {
 
     @BeforeEach
     void setUp() {
-        jobQueue = new FairJobQueue(3, 2); // maxUsers=3, maxRequestsByUser=2
+        jobQueue = new FairJobQueue(3, 2, Duration.ofMinutes(5)); // maxUsers=3, maxRequestsByUser=2
         request1 = new Request("req1", Language.ENGLISH);
         request2 = new Request("req2", Language.ENGLISH);
         request3 = new Request("req3", Language.ENGLISH);

@@ -3,7 +3,14 @@ package com.boriselec.rimworld.aiart.data;
 import com.boriselec.rimworld.aiart.AiArtControllerV2.PromptRq;
 import com.boriselec.rimworld.aiart.translate.Language;
 
-public record Request(String prompt, Language language) {
+/**
+ * @param seed null: the generator derives it from the prompt
+ */
+public record Request(String prompt, Language language, Integer seed) {
+    public Request(String prompt, Language language) {
+        this(prompt, language, null);
+    }
+
     public static Request deserialize(String data) {
         String[] split = data.split(";");
 
@@ -19,6 +26,6 @@ public record Request(String prompt, Language language) {
 
     public static Request deserializeV2(PromptRq rq) {
         Language language = Language.fromRimworldCode(rq.language());
-        return new Request(rq.prompt(), language);
+        return new Request(rq.prompt(), language, rq.seed());
     }
 }

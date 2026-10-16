@@ -5,9 +5,13 @@ import com.boriselec.rimworld.aiart.data.RequestWithUserId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -24,21 +28,27 @@ public class FairJobQueue implements JobQueue {
 
     private final int maxUsers;
     private final int maxRequestsByUser;
+    private final Duration idleTimeout;
 
     private final Map<String, Queue<Request>> userQueues;
     private final LinkedList<String> userRing;
     private final ReentrantLock lock;
     private final Map<String, RequestWithUserId> rqByUid;
+    // last request of each user with a queue
+    private final Map<String, Instant> lastSeen;
 
     public FairJobQueue(@Value("${limit.users}") int maxUsers,
-                        @Value("${limit.requestsByUser}") int maxRequestsByUser) {
+                        @Value("${limit.requestsByUser}") int maxRequestsByUser,
+                        @Value("${limit.idleUser}") Duration idleTimeout) {
         this.maxUsers = maxUsers;
         this.maxRequestsByUser = maxRequestsByUser;
+        this.idleTimeout = idleTimeout;
 
         userQueues = new ConcurrentHashMap<>();
         userRing = new LinkedList<>();
         lock = new ReentrantLock();
         rqByUid = new ConcurrentHashMap<>();
+        lastSeen = new ConcurrentHashMap<>();
     }
 
     /**
@@ -48,6 +58,7 @@ public class FairJobQueue implements JobQueue {
     public int putIfNotPresent(String rqUid, String userId, Request request) {
         lock.lock();
         try {
+            lastSeen.put(userId, Instant.now());
             Queue<Request> userQueue = userQueues.computeIfAbsent(
                 userId, k -> new LinkedList<>());
 
@@ -78,6 +89,39 @@ public class FairJobQueue implements JobQueue {
         }
         return index(userId, request)
             .orElseThrow();
+    }
+
+    @Override
+    public void touch(String userId) {
+        // only users with a queue are tracked, so the map does not grow with every visitor
+        lastSeen.computeIfPresent(userId, (k, v) -> Instant.now());
+    }
+
+    /**
+     * The mod polls its requests every few seconds while the game runs:
+     * a user silent for longer than the timeout has left, drop the requests nobody waits for
+     */
+    @Scheduled(fixedDelay = 60_000)
+    public void dropIdleUsers() {
+        Instant deadline = Instant.now().minus(idleTimeout);
+        lock.lock();
+        try {
+            for (String userId : List.copyOf(lastSeen.keySet())) {
+                if (lastSeen.get(userId).isAfter(deadline)) {
+                    continue;
+                }
+                Queue<Request> userQueue = userQueues.remove(userId);
+                userRing.remove(userId);
+                lastSeen.remove(userId);
+                rqByUid.values().removeIf(rq -> rq.userId().equals(userId));
+                if (userQueue != null && !userQueue.isEmpty()) {
+                    log.info("Dropped %d requests of idle user %s"
+                        .formatted(userQueue.size(), userId));
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 
 public interface GeneratorClient {
-    InputStream getImage(String prompt)
+    /**
+     * @param seed null: the generator derives it from the prompt
+     */
+    InputStream getImage(String prompt, Integer seed)
         throws IOException, InterruptedException, URISyntaxException;
 }

@@ -29,3 +29,10 @@ jobs:
           tags: ghcr.io/boriselec/rimworld_artaiserver:main
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # no layer cache: the Python libraries (torch) would take most of the cache space
+      - uses: docker/build-push-action@v7
+        with:
+          context: generator
+          push: true
+          tags: ghcr.io/boriselec/rimworld_artaigenerator:main

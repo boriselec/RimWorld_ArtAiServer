@@ -50,9 +50,8 @@ public class JobProcessor {
                     log.info("Prepared prompt (%s): %s".formatted(
                         request.language(), processedPrompt));
 
-                    InputStream image = generatorClient.getImage(processedPrompt);
-                    String prompt = request.prompt();
-                    String filename = imageRepository.getPromptUid(prompt);
+                    InputStream image = generatorClient.getImage(processedPrompt, request.seed());
+                    String filename = imageRepository.getRequestUid(request);
                     imageRepository.saveImage(image, filename, processedPrompt);
 
                     counters.imageSaved().increment();

@@ -1,5 +1,6 @@
 package com.boriselec.rimworld.aiart.image;
 
+import com.boriselec.rimworld.aiart.data.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,13 @@ public class ImageRepository {
 
     public String getPromptUid(String prompt) {
         return UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
+    }
+
+    // the same prompt with another seed is another image
+    public String getRequestUid(Request request) {
+        return request.seed() == null
+            ? getPromptUid(request.prompt())
+            : getPromptUid(request.prompt() + "\n" + request.seed());
     }
 
     public Optional<Resource> getImage(String filename) {
