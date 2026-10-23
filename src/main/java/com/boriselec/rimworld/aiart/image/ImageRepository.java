@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class ImageRepository {
@@ -31,10 +30,6 @@ public class ImageRepository {
 
     public ImageRepository(@Value("${image.folder}") String imageFolder) {
         this.imageFolder = imageFolder;
-    }
-
-    public String getPromptUid(String prompt) {
-        return UUID.nameUUIDFromBytes(prompt.getBytes()).toString();
     }
 
     public Optional<Resource> getImage(String filename) {

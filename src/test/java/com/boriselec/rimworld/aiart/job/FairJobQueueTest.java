@@ -1,6 +1,7 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.data.Request;
+import com.boriselec.rimworld.aiart.generator.Model;
 import com.boriselec.rimworld.aiart.translate.Language;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,9 +26,9 @@ class FairJobQueueTest {
     @BeforeEach
     void setUp() {
         jobQueue = new FairJobQueue(3, 2); // maxUsers=3, maxRequestsByUser=2
-        request1 = new Request("req1", Language.ENGLISH);
-        request2 = new Request("req2", Language.ENGLISH);
-        request3 = new Request("req3", Language.ENGLISH);
+        request1 = new Request("req1", Language.ENGLISH, Model.DREAMLIKE);
+        request2 = new Request("req2", Language.ENGLISH, Model.DREAMLIKE);
+        request3 = new Request("req3", Language.ENGLISH, Model.DREAMLIKE);
     }
 
     @Test
@@ -63,7 +64,7 @@ class FairJobQueueTest {
         jobQueue.putIfNotPresent("rqUid2", "user2", request2);
         jobQueue.putIfNotPresent("rqUid3", "user3", request3);
 
-        Request request4 = new Request("req4", Language.ENGLISH);
+        Request request4 = new Request("req4", Language.ENGLISH, Model.DREAMLIKE);
         assertThrows(QueueLimitException.class, () ->
             jobQueue.putIfNotPresent("rqUid4", "user4", request4));
     }
@@ -192,11 +193,11 @@ class FairJobQueueTest {
     @Test
     void testComplexRoundRobinScenario() {
         // User1: 2 requests, User2: 1 request, User3: 2 requests
-        Request req1_1 = new Request("user1_req1", Language.ENGLISH);
-        Request req1_2 = new Request("user1_req2", Language.ENGLISH);
-        Request req2_1 = new Request("user2_req1", Language.ENGLISH);
-        Request req3_1 = new Request("user3_req1", Language.ENGLISH);
-        Request req3_2 = new Request("user3_req2", Language.ENGLISH);
+        Request req1_1 = new Request("user1_req1", Language.ENGLISH, Model.DREAMLIKE);
+        Request req1_2 = new Request("user1_req2", Language.ENGLISH, Model.DREAMLIKE);
+        Request req2_1 = new Request("user2_req1", Language.ENGLISH, Model.DREAMLIKE);
+        Request req3_1 = new Request("user3_req1", Language.ENGLISH, Model.DREAMLIKE);
+        Request req3_2 = new Request("user3_req2", Language.ENGLISH, Model.DREAMLIKE);
 
         jobQueue.putIfNotPresent("rqUid1", "user1", req1_1);
         jobQueue.putIfNotPresent("rqUid2", "user2", req2_1);
@@ -258,8 +259,8 @@ class FairJobQueueTest {
 
     @Test
     void testSame() {
-        jobQueue.putIfNotPresent("rqUid1", "user1", new Request("user1", Language.ENGLISH));
-        int pos = jobQueue.putIfNotPresent("rqUid2", "user1", new Request("user1", Language.ENGLISH));
+        jobQueue.putIfNotPresent("rqUid1", "user1", new Request("user1", Language.ENGLISH, Model.DREAMLIKE));
+        int pos = jobQueue.putIfNotPresent("rqUid2", "user1", new Request("user1", Language.ENGLISH, Model.DREAMLIKE));
 
         assertEquals(1, jobQueue.size());
         assertEquals(0, pos);
@@ -267,7 +268,7 @@ class FairJobQueueTest {
 
     @Test
     void testIndexByRqUid() {
-        Request request = new Request("prompt", Language.ENGLISH);
+        Request request = new Request("prompt", Language.ENGLISH, Model.DREAMLIKE);
         int pos = jobQueue.putIfNotPresent("rqUid", "user", request);
 
         assertEquals(0, pos);

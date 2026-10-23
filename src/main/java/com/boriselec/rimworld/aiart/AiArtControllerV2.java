@@ -2,6 +2,7 @@ package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.AiArtControllerV2.HistoryRs.Ready.HistoryRsOutputs.HistoryRsOutputsElem.HistoryRsOutputsImage;
 import com.boriselec.rimworld.aiart.data.Request;
+import com.boriselec.rimworld.aiart.generator.Model;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
@@ -50,15 +51,17 @@ public class AiArtControllerV2 {
 
     @PostMapping("/prompt")
     public ResponseEntity<PromptRs> prompt(
-        @RequestBody @Valid @NotNull PromptRq rq, HttpServletRequest httpRequest) {
+        @RequestBody @Valid @NotNull PromptRq rq,
+        @RequestParam(required = false) Model model,
+        HttpServletRequest httpRequest) {
 
-        log.info("/prompt: " + rq.toString());
+        log.info("/prompt (%s): %s".formatted(model, rq));
 
-        Request request = Request.deserializeV2(rq);
+        Request request = Request.deserializeV2(rq, model);
         String userId = ofNullable(httpRequest.getHeader("X-Real-IP"))
             .orElse("unknown");
         try {
-            String rqUid = imageRepository.getPromptUid(request.prompt());
+            String rqUid = request.uid();
 
             if (imageRepository.hasImage(rqUid)) {
                 return ResponseEntity.ok(new PromptRs(rqUid));

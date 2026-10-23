@@ -5,6 +5,7 @@ import com.boriselec.rimworld.aiart.monitoring.Monitoring;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.GeneratorRejectedException;
+import com.boriselec.rimworld.aiart.generator.Model;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.translate.Translator;
 import org.slf4j.Logger;
@@ -49,11 +50,12 @@ public class JobProcessor {
 
     private void generate(Request request) throws IOException, InterruptedException {
         String processedPrompt = prepare(request);
+        Model model = request.model();
         log.info("Prepared prompt (%s): %s".formatted(
             request.language(), processedPrompt));
-        String filename = imageRepository.getPromptUid(request.prompt());
+        String filename = request.uid();
 
-        try (InputStream image = generatorClient.getImage(processedPrompt)) {
+        try (InputStream image = generatorClient.getImage(model, processedPrompt)) {
             imageRepository.saveImage(image, filename, processedPrompt);
             monitoring.imageSaved(filename);
         } catch (GeneratorRejectedException e) {

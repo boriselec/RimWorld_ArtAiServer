@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static java.net.http.HttpRequest.BodyPublishers.ofString;
 import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
@@ -23,22 +24,25 @@ import static com.github.mizosoft.methanol.MoreBodyHandlers.withReadTimeout;
 
 public class StaticGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final URI uri;
+    private final String url;
     private final Duration timeout;
     private final HttpClient httpClient;
 
     public StaticGeneratorClient(String url, Duration timeout) {
-        this.uri = URI.create(url);
+        this.url = url;
         this.timeout = timeout;
         this.httpClient = HttpClient.newHttpClient();
     }
 
     @Override
     @Timed("generation.time")
-    public InputStream getImage(String prompt)
+    public InputStream getImage(Model model, String prompt)
         throws IOException, InterruptedException {
-        log.info("Getting image...");
+        log.info("Getting image (%s)...".formatted(model));
 
+        URI uri = UriComponentsBuilder.fromUriString(url)
+            .pathSegment(model.name(), "generate")
+            .build().toUri();
         HttpRequest request = HttpRequest.newBuilder(uri)
             .timeout(timeout)
             .POST(ofString(prompt))

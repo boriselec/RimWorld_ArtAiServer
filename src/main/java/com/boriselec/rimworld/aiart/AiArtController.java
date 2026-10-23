@@ -47,7 +47,7 @@ public class AiArtController {
         var rq = Request.deserialize(postData);
         var userId = Optional.ofNullable(httpRequest.getHeader("X-Real-IP"))
             .orElse("unknown");
-        String filename = imageRepository.getPromptUid(rq.prompt());
+        String filename = rq.uid();
         return imageRepository.getImage(filename)
             .map(image -> {
                 monitoring.imageQueried(filename);

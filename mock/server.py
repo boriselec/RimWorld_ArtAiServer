@@ -11,7 +11,7 @@ class Mock(BaseHTTPRequestHandler):
     result = {}
 
     def do_POST(self):
-        if self.path.startswith('/generate'):
+        if self.path.endswith('/generate'):
             self.send_response(200)
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length).decode('utf-8')
