@@ -6,6 +6,7 @@ import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
 import com.boriselec.rimworld.aiart.monitoring.Status;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
+import com.boriselec.rimworld.aiart.generator.GeneratorRejectedException;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.translate.Translator;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 
 @Component
 public class JobProcessor {
@@ -45,12 +45,11 @@ public class JobProcessor {
     public void process() {
         while (!queue.isEmpty()) {
             queue.processNext(request -> {
-                try {
-                    String processedPrompt = prepare(request);
-                    log.info("Prepared prompt (%s): %s".formatted(
-                        request.language(), processedPrompt));
+                String processedPrompt = prepare(request);
+                log.info("Prepared prompt (%s): %s".formatted(
+                    request.language(), processedPrompt));
 
-                    InputStream image = generatorClient.getImage(processedPrompt);
+                try (InputStream image = generatorClient.getImage(processedPrompt)) {
                     String prompt = request.prompt();
                     String filename = imageRepository.getPromptUid(prompt);
                     imageRepository.saveImage(image, filename, processedPrompt);
@@ -58,7 +57,10 @@ public class JobProcessor {
                     counters.imageSaved().increment();
                     status.updateLastSuccess();
                     imageRequestMonitoring.putGenerated(filename);
-                } catch (IOException | InterruptedException | URISyntaxException e) {
+                } catch (GeneratorRejectedException e) {
+                    log.error("Generator rejected prompt: " + e.getMessage());
+                    counters.imageRejected().increment();
+                } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             });

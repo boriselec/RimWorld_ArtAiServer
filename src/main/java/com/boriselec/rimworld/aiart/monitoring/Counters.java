@@ -8,13 +8,15 @@ public record Counters(
     Counter rsImageV2,
     Counter rsQueued,
     Counter rsLimit,
-    Counter imageSaved) {
+    Counter imageSaved,
+    Counter imageRejected) {
     public Counters(MeterRegistry registry) {
         this(
             registry.counter("rs.image.v1"),
             registry.counter("rs.image.v2"),
             registry.counter("rs.queued"),
             registry.counter("rs.limit"),
-            registry.counter("image.saved"));
+            registry.counter("image.saved"),
+            registry.counter("image.rejected"));
     }
 }

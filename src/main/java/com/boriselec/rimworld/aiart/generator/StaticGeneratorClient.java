@@ -5,29 +5,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+
+import static java.net.http.HttpRequest.BodyPublishers.ofString;
+import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodySubscriber;
-import java.net.http.HttpResponse.BodySubscribers;
-import java.net.http.HttpResponse.ResponseInfo;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 
-import static com.github.mizosoft.methanol.MoreBodySubscribers.withReadTimeout;
+import static com.github.mizosoft.methanol.MoreBodyHandlers.withReadTimeout;
 
 public class StaticGeneratorClient implements GeneratorClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final String url;
+    private final URI uri;
     private final Duration timeout;
     private final HttpClient httpClient;
 
     public StaticGeneratorClient(String url, Duration timeout) {
-        this.url = url;
+        this.uri = URI.create(url);
         this.timeout = timeout;
         this.httpClient = HttpClient.newHttpClient();
     }
@@ -35,32 +36,34 @@ public class StaticGeneratorClient implements GeneratorClient {
     @Override
     @Timed("generation.time")
     public InputStream getImage(String prompt)
-        throws IOException, InterruptedException, URISyntaxException {
+        throws IOException, InterruptedException {
         log.info("Getting image...");
 
-        HttpRequest request = HttpRequest.newBuilder(new URI(url))
+        HttpRequest request = HttpRequest.newBuilder(uri)
             .timeout(timeout)
-            .POST(HttpRequest.BodyPublishers.ofString(prompt))
+            .POST(ofString(prompt))
             .build();
-        InputStream response = httpClient
-            .send(request, this::processResponse)
-            .body();
+        HttpResponse<InputStream> response = httpClient.send(request,
+            // TODO: drop methanol after JDK 26+ JDK-8208693
+            withReadTimeout(ofInputStream(), timeout));
 
-        log.info("Getting image: DONE");
-        return response;
-    }
-
-    private BodySubscriber<InputStream> processResponse(ResponseInfo responseInfo) {
-        int statusCode = responseInfo.statusCode();
-        if (statusCode != HttpStatus.OK.value()) {
-            throw new IllegalStateException("HTTP code: " + statusCode);
+        HttpStatusCode statusCode = HttpStatusCode.valueOf(response.statusCode());
+        if (statusCode != HttpStatus.OK) {
+            response.body().close();
+            String message = "HTTP code: " + statusCode;
+            throw statusCode.is4xxClientError()
+                ? new GeneratorRejectedException(message)
+                : new IllegalStateException(message);
         }
-        String contentType = responseInfo.headers()
+        String contentType = response.headers()
             .firstValue(HttpHeaders.CONTENT_TYPE)
             .orElse(null);
         if (!MediaType.IMAGE_PNG.toString().equals(contentType)) {
+            response.body().close();
             throw new IllegalStateException("Content-type: " + contentType);
         }
-        return withReadTimeout(BodySubscribers.ofInputStream(), timeout);
+
+        log.info("Getting image: DONE");
+        return response.body();
     }
 }
