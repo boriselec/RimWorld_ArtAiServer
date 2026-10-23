@@ -2,7 +2,6 @@ package com.boriselec.rimworld.aiart;
 
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.StaticGeneratorClient;
-import com.boriselec.rimworld.aiart.monitoring.Counters;
 import com.boriselec.rimworld.aiart.translate.Translator;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -43,11 +42,6 @@ public class Application implements SchedulingConfigurer {
     @Bean
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
-    }
-
-    @Bean
-    public Counters counters(MeterRegistry registry) {
-        return new Counters(registry);
     }
 
     @Bean

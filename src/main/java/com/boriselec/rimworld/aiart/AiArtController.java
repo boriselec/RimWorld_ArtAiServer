@@ -4,8 +4,7 @@ import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
-import com.boriselec.rimworld.aiart.monitoring.Counters;
-import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
+import com.boriselec.rimworld.aiart.monitoring.Monitoring;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +29,13 @@ public class AiArtController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
-    private final Counters counters;
-    private final ImageRequestMonitoring imageRequestMonitoring;
+    private final Monitoring monitoring;
 
     public AiArtController(ImageRepository imageRepository, JobQueue jobQueue,
-                           Counters counters,
-                           ImageRequestMonitoring imageRequestMonitoring) {
+                           Monitoring monitoring) {
         this.imageRepository = imageRepository;
         this.jobQueue = jobQueue;
-        this.counters = counters;
-        this.imageRequestMonitoring = imageRequestMonitoring;
+        this.monitoring = monitoring;
     }
 
     @PostMapping("/generate")
@@ -54,7 +50,7 @@ public class AiArtController {
         String filename = imageRepository.getPromptUid(rq.prompt());
         return imageRepository.getImage(filename)
             .map(image -> {
-                imageRequestMonitoring.finish(filename);
+                monitoring.imageQueried(filename);
                 return getImageResponse(image);
             })
             .orElseGet(() -> process(rq, userId));
@@ -63,17 +59,17 @@ public class AiArtController {
     private ResponseEntity<Resource> process(Request rq, String userId) {
         try {
             jobQueue.putIfNotPresent("", userId, rq);
-            counters.rsQueued().increment();
+            monitoring.requestQueued();
         } catch (QueueLimitException e) {
             log.info(e.getMessage());
-            counters.rsLimit().increment();
+            monitoring.requestLimited();
             return getInProgressResponse(e.getMessage() + ". Try later.");
         }
         return getInProgressResponse(SUNSET_NOTICE);
     }
 
     private ResponseEntity<Resource> getImageResponse(Resource image) {
-        counters.rsImageV1().increment();
+        monitoring.imageServedV1();
         return ResponseEntity.ok()
             .contentType(MediaType.IMAGE_PNG)
             .body(image);

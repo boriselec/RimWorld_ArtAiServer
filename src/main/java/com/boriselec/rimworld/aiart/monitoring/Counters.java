@@ -3,14 +3,14 @@ package com.boriselec.rimworld.aiart.monitoring;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
-public record Counters(
+record Counters(
     Counter rsImageV1,
     Counter rsImageV2,
     Counter rsQueued,
     Counter rsLimit,
     Counter imageSaved,
     Counter imageRejected) {
-    public Counters(MeterRegistry registry) {
+    Counters(MeterRegistry registry) {
         this(
             registry.counter("rs.image.v1"),
             registry.counter("rs.image.v2"),

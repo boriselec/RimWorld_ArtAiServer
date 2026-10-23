@@ -5,8 +5,7 @@ import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
 import com.boriselec.rimworld.aiart.job.JobQueue;
 import com.boriselec.rimworld.aiart.job.QueueLimitException;
-import com.boriselec.rimworld.aiart.monitoring.Counters;
-import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
+import com.boriselec.rimworld.aiart.monitoring.Monitoring;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -40,16 +39,13 @@ public class AiArtControllerV2 {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final ImageRepository imageRepository;
     private final JobQueue jobQueue;
-    private final Counters counters;
-    private final ImageRequestMonitoring imageRequestMonitoring;
+    private final Monitoring monitoring;
 
     public AiArtControllerV2(ImageRepository imageRepository, JobQueue jobQueue,
-                             Counters counters,
-                             ImageRequestMonitoring imageRequestMonitoring) {
+                             Monitoring monitoring) {
         this.imageRepository = imageRepository;
         this.jobQueue = jobQueue;
-        this.counters = counters;
-        this.imageRequestMonitoring = imageRequestMonitoring;
+        this.monitoring = monitoring;
     }
 
     @PostMapping("/prompt")
@@ -69,10 +65,10 @@ public class AiArtControllerV2 {
             }
 
             jobQueue.putIfNotPresent(rqUid, userId, request);
-            counters.rsQueued().increment();
+            monitoring.requestQueued();
             return ResponseEntity.ok(new PromptRs(rqUid));
         } catch (QueueLimitException _) {
-            counters.rsLimit().increment();
+            monitoring.requestLimited();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
     }
@@ -104,7 +100,7 @@ public class AiArtControllerV2 {
     @GetMapping("/view")
     public ResponseEntity<Resource> view(@RequestParam String filename) {
         log.info("/view: " + filename);
-        imageRequestMonitoring.finish(filename);
+        monitoring.imageQueried(filename);
 
         return imageRepository.getImage(filename)
             .map(this::getImageResponse)
@@ -112,7 +108,7 @@ public class AiArtControllerV2 {
     }
 
     private ResponseEntity<Resource> getImageResponse(Resource image) {
-        counters.rsImageV2().increment();
+        monitoring.imageServedV2();
         return ResponseEntity.ok()
             .contentType(MediaType.IMAGE_PNG)
             .body(image);

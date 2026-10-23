@@ -1,9 +1,7 @@
 package com.boriselec.rimworld.aiart.job;
 
 import com.boriselec.rimworld.aiart.ArtDescriptionTextProcessor;
-import com.boriselec.rimworld.aiart.monitoring.Counters;
-import com.boriselec.rimworld.aiart.monitoring.ImageRequestMonitoring;
-import com.boriselec.rimworld.aiart.monitoring.Status;
+import com.boriselec.rimworld.aiart.monitoring.Monitoring;
 import com.boriselec.rimworld.aiart.data.Request;
 import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.GeneratorRejectedException;
@@ -24,21 +22,16 @@ public class JobProcessor {
     private final ImageRepository imageRepository;
     private final GeneratorClient generatorClient;
     private final Translator translator;
-    private final Counters counters;
-    private final Status status;
-    private final ImageRequestMonitoring imageRequestMonitoring;
+    private final Monitoring monitoring;
 
     public JobProcessor(JobQueue queue, ImageRepository imageRepository,
                         GeneratorClient generatorClient, Translator translator,
-                        Counters counters, Status status,
-                        ImageRequestMonitoring imageRequestMonitoring) {
+                        Monitoring monitoring) {
         this.queue = queue;
         this.imageRepository = imageRepository;
         this.generatorClient = generatorClient;
         this.translator = translator;
-        this.counters = counters;
-        this.status = status;
-        this.imageRequestMonitoring = imageRequestMonitoring;
+        this.monitoring = monitoring;
     }
 
     @Scheduled(fixedDelay = 1000)
@@ -62,14 +55,11 @@ public class JobProcessor {
 
         try (InputStream image = generatorClient.getImage(processedPrompt)) {
             imageRepository.saveImage(image, filename, processedPrompt);
-
-            counters.imageSaved().increment();
-            status.updateLastSuccess();
-            imageRequestMonitoring.putGenerated(filename);
+            monitoring.imageSaved(filename);
         } catch (GeneratorRejectedException e) {
             log.error("Generator rejected prompt: " + e.getMessage());
-            counters.imageRejected().increment();
             imageRepository.saveRejectedImage(filename, processedPrompt);
+            monitoring.imageRejected();
         }
     }
 
