@@ -51,9 +51,10 @@ public class StaticGeneratorClient implements GeneratorClient {
         if (statusCode != HttpStatus.OK) {
             response.body().close();
             String message = "HTTP code: " + statusCode;
-            throw statusCode.is4xxClientError()
-                ? new GeneratorRejectedException(message)
-                : new IllegalStateException(message);
+            throw switch (statusCode.value()) {
+                case 400, 413, 422 -> new GeneratorRejectedException(message);
+                default -> new IllegalStateException(message);
+            };
         }
         String contentType = response.headers()
             .firstValue(HttpHeaders.CONTENT_TYPE)
