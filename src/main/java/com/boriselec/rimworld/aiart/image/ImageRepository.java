@@ -3,6 +3,7 @@ package com.boriselec.rimworld.aiart.image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,8 @@ import java.util.UUID;
 
 @Component
 public class ImageRepository {
+    private static final Resource REJECTED_IMAGE = new ClassPathResource("rejected.png");
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String imageFolder;
 
@@ -42,6 +45,13 @@ public class ImageRepository {
     public boolean hasImage(String filename) {
         return new File(getFilePath(filename))
             .exists();
+    }
+
+    public void saveRejectedImage(String filename, String processedPrompt)
+        throws IOException {
+        try (InputStream is = REJECTED_IMAGE.getInputStream()) {
+            saveImage(is, filename, processedPrompt);
+        }
     }
 
     public void saveImage(InputStream is, String filename, String processedPrompt)

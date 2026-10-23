@@ -45,25 +45,31 @@ public class JobProcessor {
     public void process() {
         while (!queue.isEmpty()) {
             queue.processNext(request -> {
-                String processedPrompt = prepare(request);
-                log.info("Prepared prompt (%s): %s".formatted(
-                    request.language(), processedPrompt));
-
-                try (InputStream image = generatorClient.getImage(processedPrompt)) {
-                    String prompt = request.prompt();
-                    String filename = imageRepository.getPromptUid(prompt);
-                    imageRepository.saveImage(image, filename, processedPrompt);
-
-                    counters.imageSaved().increment();
-                    status.updateLastSuccess();
-                    imageRequestMonitoring.putGenerated(filename);
-                } catch (GeneratorRejectedException e) {
-                    log.error("Generator rejected prompt: " + e.getMessage());
-                    counters.imageRejected().increment();
+                try {
+                    generate(request);
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             });
+        }
+    }
+
+    private void generate(Request request) throws IOException, InterruptedException {
+        String processedPrompt = prepare(request);
+        log.info("Prepared prompt (%s): %s".formatted(
+            request.language(), processedPrompt));
+        String filename = imageRepository.getPromptUid(request.prompt());
+
+        try (InputStream image = generatorClient.getImage(processedPrompt)) {
+            imageRepository.saveImage(image, filename, processedPrompt);
+
+            counters.imageSaved().increment();
+            status.updateLastSuccess();
+            imageRequestMonitoring.putGenerated(filename);
+        } catch (GeneratorRejectedException e) {
+            log.error("Generator rejected prompt: " + e.getMessage());
+            counters.imageRejected().increment();
+            imageRepository.saveRejectedImage(filename, processedPrompt);
         }
     }
 
