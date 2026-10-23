@@ -7,7 +7,6 @@ import com.boriselec.rimworld.aiart.generator.GeneratorClient;
 import com.boriselec.rimworld.aiart.generator.GeneratorRejectedException;
 import com.boriselec.rimworld.aiart.generator.Model;
 import com.boriselec.rimworld.aiart.image.ImageRepository;
-import com.boriselec.rimworld.aiart.translate.Translator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,16 +21,13 @@ public class JobProcessor {
     private final JobQueue queue;
     private final ImageRepository imageRepository;
     private final GeneratorClient generatorClient;
-    private final Translator translator;
     private final Monitoring monitoring;
 
     public JobProcessor(JobQueue queue, ImageRepository imageRepository,
-                        GeneratorClient generatorClient, Translator translator,
-                        Monitoring monitoring) {
+                        GeneratorClient generatorClient, Monitoring monitoring) {
         this.queue = queue;
         this.imageRepository = imageRepository;
         this.generatorClient = generatorClient;
-        this.translator = translator;
         this.monitoring = monitoring;
     }
 
@@ -49,10 +45,9 @@ public class JobProcessor {
     }
 
     private void generate(Request request) throws IOException, InterruptedException {
-        String processedPrompt = prepare(request);
+        String processedPrompt = ArtDescriptionTextProcessor.process(request.prompt());
         Model model = request.model();
-        log.info("Prepared prompt (%s): %s".formatted(
-            request.language(), processedPrompt));
+        log.info("Prepared prompt (%s): %s".formatted(model, processedPrompt));
         String filename = request.uid();
 
         try (InputStream image = generatorClient.getImage(model, processedPrompt)) {
@@ -63,11 +58,5 @@ public class JobProcessor {
             imageRepository.saveRejectedImage(filename, processedPrompt);
             monitoring.imageRejected();
         }
-    }
-
-    private String prepare(Request request) {
-        String originalDesc = request.prompt();
-        String preparedDesc = ArtDescriptionTextProcessor.process(originalDesc);
-        return translator.translateFrom(request.language(), preparedDesc);
     }
 }

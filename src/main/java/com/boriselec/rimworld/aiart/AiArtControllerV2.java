@@ -117,9 +117,7 @@ public class AiArtControllerV2 {
             .body(image);
     }
 
-    public record PromptRq(
-        @NotBlank String prompt,
-        @NotBlank String language) {
+    public record PromptRq(@NotBlank String prompt) {
     }
 
     public record PromptRs(@JsonProperty("prompt_id") String rqUid) {
